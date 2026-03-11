@@ -1,0 +1,83 @@
+@ExampleApi_HostAddress = http://localhost:5088
+
+### Create a new article
+POST {{ExampleApi_HostAddress}}/api/articles
+Content-Type: application/json
+
+{
+  "name": "Branded Memory Stick",
+  "description": "Branded 16 GB memory stick",
+  "category": "USB flash drive",
+  "price": 17.89,
+  "currency": "NOK"
+}
+
+###
+
+### Get article by ID
+GET {{ExampleApi_HostAddress}}/api/articles/1
+Accept: application/json
+
+###
+
+### Get all articles
+GET {{ExampleApi_HostAddress}}/api/articles
+Accept: application/json
+
+###
+
+### Get articles filtered by name (partial, case-insensitive)
+GET {{ExampleApi_HostAddress}}/api/articles?name=Branded
+Accept: application/json
+
+###
+
+### Get articles filtered by category (exact match)
+GET {{ExampleApi_HostAddress}}/api/articles?category=USB%20flash%20drive
+Accept: application/json
+
+###
+
+### Update an existing article (requires row_version from GET response)
+PUT {{ExampleApi_HostAddress}}/api/articles/1
+Content-Type: application/json
+
+{
+  "name": "Updated Memory Stick",
+  "description": "Updated 32 GB memory stick",
+  "category": "USB flash drive",
+  "price": 29.99,
+  "currency": "NOK",
+  "row_version": "AAAAAAAAB9I="
+}
+
+###
+
+### Create multiple articles concurrently
+POST {{ExampleApi_HostAddress}}/api/articles-concurrent
+Content-Type: application/json
+
+[
+  {
+    "name": "Branded Pen",
+    "description": "High quality pen with logo",
+    "category": "Stationery",
+    "price": 5.99,
+    "currency": "USD"
+  },
+  {
+    "name": "Branded Drinking Mug",
+    "description": "Porcelain drinking cup with your logo on it.",
+    "category": "Mug",
+    "price": 12.50,
+    "currency": "EUR"
+  }
+]
+
+###
+
+### Health check
+GET {{ExampleApi_HostAddress}}/health
+Accept: application/json
+
+###
