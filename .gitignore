@@ -82,7 +82,7 @@ nunit-*.xml
 # Visual Studio cache files
 *.[Cc]ache
 *.dtbcache.v2
-Papirify/
+
 
 # ReSharper
 _ReSharper*/
