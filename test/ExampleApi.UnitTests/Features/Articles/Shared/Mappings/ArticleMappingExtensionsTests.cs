@@ -21,7 +21,7 @@ public class ArticleMappingExtensionsTests
             Category = "Electronics",
             Price = 99.99m,
             Currency = "USD",
-            RowVersion = [1, 2, 3, 4, 5, 6, 7, 8]
+            RowVersion = 0x01020304u
         };
 
         // Act
@@ -35,7 +35,7 @@ public class ArticleMappingExtensionsTests
         response.Category.Should().Be("Electronics");
         response.Price.Should().Be(99.99m);
         response.Currency.Should().Be("USD");
-        response.RowVersion.Should().BeEquivalentTo([1, 2, 3, 4, 5, 6, 7, 8]);
+        response.RowVersion.Should().Be(0x01020304u);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class ArticleMappingExtensionsTests
             Category = null,
             Price = 0m,
             Currency = null,
-            RowVersion = null
+            RowVersion = 0u
         };
 
         // Act
@@ -64,7 +64,7 @@ public class ArticleMappingExtensionsTests
         response.Category.Should().BeNull();
         response.Price.Should().Be(0m);
         response.Currency.Should().BeNull();
-        response.RowVersion.Should().BeNull();
+        response.RowVersion.Should().Be(0u);
     }
 
     [Fact]
@@ -152,10 +152,10 @@ public class ArticleMappingExtensionsTests
     }
 
     [Fact]
-    public void ToResponse_WithNonEmptyRowVersion_ShouldCopyArray()
+    public void ToResponse_WithNonZeroRowVersion_ShouldMapValue()
     {
         // Arrange
-        byte[] rowVersion = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08];
+        const uint rowVersion = 0x01020304u;
         var article = new Article
         {
             ArticleId = 10,
@@ -170,8 +170,7 @@ public class ArticleMappingExtensionsTests
         var response = article.ToResponse();
 
         // Assert
-        response.RowVersion.Should().NotBeNull();
-        response.RowVersion.Should().BeEquivalentTo(rowVersion);
+        response.RowVersion.Should().Be(rowVersion);
     }
 
     [Fact]

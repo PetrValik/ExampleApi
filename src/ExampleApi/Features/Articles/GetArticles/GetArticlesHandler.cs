@@ -35,8 +35,9 @@ public sealed class GetArticlesHandler(AppDbContext dbContext) : IGetArticlesHan
 
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
+            var escapedName = EscapeLikePattern(request.Name);
             query = query.Where(article => 
-                EF.Functions.Like(article.Name, $"%{request.Name}%"));
+                EF.Functions.Like(article.Name, $"%{escapedName}%"));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Category))
@@ -62,4 +63,16 @@ public sealed class GetArticlesHandler(AppDbContext dbContext) : IGetArticlesHan
             TotalCount = totalCount
         };
     }
+
+    /// <summary>
+    /// Escapes LIKE pattern wildcards in user input to prevent wildcard injection.
+    /// EF Core parameterizes queries (preventing SQL injection) but does NOT escape
+    /// wildcard characters, so <c>%</c> and <c>_</c> must be escaped manually.
+    /// Uses backslash escaping which is the PostgreSQL default.
+    /// </summary>
+    private static string EscapeLikePattern(string pattern) =>
+        pattern
+            .Replace(@"\", @"\\", StringComparison.Ordinal)
+            .Replace("%", @"\%", StringComparison.Ordinal)
+            .Replace("_", @"\_", StringComparison.Ordinal);
 }

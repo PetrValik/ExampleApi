@@ -24,6 +24,7 @@ public sealed class GetArticlesEndpoint : IEndpoint
         .WithTags("Articles")
         .WithSummary("Get articles with pagination")
         .WithDescription("Retrieves a paginated list of articles. Supports filtering by name (partial match, case-insensitive) and category (exact match). Default page size is 10, maximum is 100.")
-        .Produces<PagedResponse<ArticleResponse>>(StatusCodes.Status200OK);
+        .Produces<PagedResponse<ArticleResponse>>(StatusCodes.Status200OK)
+        .RequireAuthorization();
     }
 }

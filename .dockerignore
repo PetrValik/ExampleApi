@@ -1,0 +1,30 @@
+# Build artifacts
+**/bin/
+**/obj/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# SQLite databases (no longer used)
+*.db
+*.db-shm
+*.db-wal
+
+# Test projects — not needed in the image
+test/
+
+# Docs
+README.md
+*.http
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -37,6 +37,7 @@ public sealed class Article
 
     /// <summary>
     /// Gets or sets the row version for optimistic concurrency control.
+    /// Maps to the PostgreSQL <c>xmin</c> system column.
     /// </summary>
-    public byte[]? RowVersion { get; set; }
+    public uint RowVersion { get; set; }
 }

@@ -47,5 +47,5 @@ public sealed class ArticleResponse
     /// Gets or sets the row version for optimistic concurrency control.
     /// </summary>
     [JsonPropertyName("row_version")]
-    public byte[]? RowVersion { get; set; }
+    public uint RowVersion { get; set; }
 }

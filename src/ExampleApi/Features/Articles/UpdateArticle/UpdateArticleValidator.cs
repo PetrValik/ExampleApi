@@ -33,7 +33,9 @@ public sealed class UpdateArticleValidator : AbstractValidator<UpdateArticleRequ
 
         RuleFor(request => request.Price)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("Price must be greater than or equal to 0.");
+            .WithMessage("Price must be greater than or equal to 0.")
+            .LessThanOrEqualTo(9_999_999_999_999_999.99m)
+            .WithMessage("Price must not exceed 9,999,999,999,999,999.99.");
 
         RuleFor(request => request.Currency)
             .NotEmpty()
@@ -45,7 +47,7 @@ public sealed class UpdateArticleValidator : AbstractValidator<UpdateArticleRequ
             .When(request => request.Price > 0);
 
         RuleFor(request => request.RowVersion)
-            .NotEmpty()
-            .WithMessage("Row version is required for concurrency control.");
+            .Must(rv => rv.HasValue && rv.Value > 0u)
+            .WithMessage("Row version is required and must be a valid non-zero value.");
     }
 }

@@ -9,6 +9,20 @@ namespace ExampleApi.Configuration;
 public static class WebApplicationExtensions
 {
     /// <summary>
+    /// Adds authentication and authorization middleware to the pipeline.
+    /// Must be called after <c>UseRouting</c> and before <c>MapEndpoints</c>.
+    /// </summary>
+    /// <param name="app">The web application.</param>
+    /// <returns>The web application for chaining.</returns>
+    public static WebApplication UseJwtAuthentication(this WebApplication app)
+    {
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        return app;
+    }
+
+    /// <summary>
     /// Initializes the database schema and seed data.
     /// </summary>
     /// <param name="app">The web application.</param>

@@ -33,6 +33,7 @@ public sealed class CreateArticleEndpoint : IEndpoint
         .WithSummary("Create a new article")
         .WithDescription("Creates a new article with the provided details. Returns the created article with a generated ID.")
         .Produces<ArticleResponse>(StatusCodes.Status201Created, "application/json")
-        .ProducesValidationProblem(StatusCodes.Status400BadRequest);
+        .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+        .RequireAuthorization();
     }
 }

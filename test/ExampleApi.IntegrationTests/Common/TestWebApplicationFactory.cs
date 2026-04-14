@@ -1,33 +1,34 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Testcontainers.PostgreSql;
 using ExampleApi.Infrastructure.Database;
 
 namespace ExampleApi.IntegrationTests.Common;
 
 /// <summary>
 /// Custom WebApplicationFactory for integration testing.
-/// Uses SQLite in-memory database for realistic testing with proper SQL support.
+/// Spins up a real PostgreSQL instance via Testcontainers for realistic end-to-end testing.
 /// </summary>
 public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private SqliteConnection? _connection;
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
+        .WithImage("postgres:16-alpine")
+        .WithDatabase("exampleapi_test")
+        .WithUsername("postgres")
+        .WithPassword("postgres")
+        .Build();
 
     public async Task InitializeAsync()
     {
-        // Create and open a SQLite in-memory connection
-        // Must stay open for the lifetime of the test to keep the database alive
-        _connection = new SqliteConnection("DataSource=:memory:");
-        await _connection.OpenAsync();
+        await _postgres.StartAsync();
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
         {
-            // Remove the existing DbContext registration
             var descriptor = services.SingleOrDefault(
                 d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
 
@@ -36,18 +37,13 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
                 services.Remove(descriptor);
             }
 
-            // Add DbContext using the in-memory SQLite connection
             services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseSqlite(_connection!);
-            });
+                options.UseNpgsql(_postgres.GetConnectionString()));
 
-            // Build service provider to initialize the database
             var serviceProvider = services.BuildServiceProvider();
             using var scope = serviceProvider.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            // Apply migrations to create the schema
             db.Database.Migrate();
         });
 
@@ -56,12 +52,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
 
     public new async Task DisposeAsync()
     {
-        if (_connection != null)
-        {
-            await _connection.CloseAsync();
-            await _connection.DisposeAsync();
-        }
-
+        await _postgres.DisposeAsync();
         await base.DisposeAsync();
     }
 }

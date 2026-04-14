@@ -15,6 +15,7 @@ public sealed class HealthEndpoint : IEndpoint
             .WithTags("Health")
             .WithSummary("Health check")
             .WithDescription("Returns the health status of the API.")
-            .Produces<object>(StatusCodes.Status200OK);
+            .Produces<object>(StatusCodes.Status200OK)
+            .AllowAnonymous();
     }
 }

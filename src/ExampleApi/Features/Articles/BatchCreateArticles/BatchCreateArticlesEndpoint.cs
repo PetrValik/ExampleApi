@@ -33,6 +33,7 @@ public sealed class BatchCreateArticlesEndpoint : IEndpoint
             .WithSummary("Create multiple articles concurrently")
             .WithDescription("Creates multiple articles in parallel. Returns the list of created articles with generated IDs.")
             .Produces<List<ArticleResponse>>(StatusCodes.Status201Created, "application/json")
-            .ProducesValidationProblem(StatusCodes.Status400BadRequest);
+            .ProducesValidationProblem(StatusCodes.Status400BadRequest)
+            .RequireAuthorization();
     }
 }

@@ -24,6 +24,7 @@ public sealed class GetArticleEndpoint : IEndpoint
         .WithSummary("Get article by ID")
         .WithDescription("Retrieves a single article by its unique identifier.")
         .Produces<ArticleResponse>(StatusCodes.Status200OK)
-        .Produces(StatusCodes.Status404NotFound);
+        .Produces(StatusCodes.Status404NotFound)
+        .RequireAuthorization();
     }
 }

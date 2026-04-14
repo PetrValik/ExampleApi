@@ -33,7 +33,9 @@ public sealed class ArticleRequestValidator : AbstractValidator<ArticleRequest>
 
         RuleFor(request => request.Price)
             .GreaterThanOrEqualTo(0)
-            .WithMessage("Price must be greater than or equal to 0.");
+            .WithMessage("Price must be greater than or equal to 0.")
+            .LessThanOrEqualTo(9_999_999_999_999_999.99m)
+            .WithMessage("Price must not exceed 9,999,999,999,999,999.99.");
 
         RuleFor(request => request.Currency)
             .NotEmpty()

@@ -16,7 +16,9 @@ public sealed class BatchCreateArticlesValidator : AbstractValidator<List<Articl
     {
         RuleFor(request => request)
             .NotEmpty()
-            .WithMessage("At least one article is required.");
+            .WithMessage("At least one article is required.")
+            .Must(list => list.Count <= 100)
+            .WithMessage("Cannot create more than 100 articles at once.");
 
         RuleForEach(request => request)
             .SetValidator(new ArticleRequestValidator());

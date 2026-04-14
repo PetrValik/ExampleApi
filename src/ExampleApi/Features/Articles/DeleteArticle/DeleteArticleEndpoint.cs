@@ -24,6 +24,7 @@ public sealed class DeleteArticleEndpoint : IEndpoint
         .WithSummary("Delete an article")
         .WithDescription("Permanently deletes an article by its ID.")
         .Produces(StatusCodes.Status204NoContent)
-        .Produces<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json");
+        .Produces<ProblemDetails>(StatusCodes.Status404NotFound, "application/problem+json")
+        .RequireAuthorization();
     }
 }

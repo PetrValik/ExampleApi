@@ -36,6 +36,7 @@ public sealed class UpdateArticleEndpoint : IEndpoint
         .Produces<ArticleResponse>(StatusCodes.Status200OK, "application/json")
         .ProducesValidationProblem(StatusCodes.Status400BadRequest)
         .Produces(StatusCodes.Status404NotFound)
-        .Produces(StatusCodes.Status409Conflict);
+        .Produces(StatusCodes.Status409Conflict)
+        .RequireAuthorization();
     }
 }

@@ -156,7 +156,7 @@ public class UpdateArticleHandlerTests : IDisposable
             Name = "Updated Name",
             Description = "Updated Description",
             Price = 0,
-            RowVersion = [1, 2, 3, 4, 5, 6, 7, 8]
+            RowVersion = 12345678u
         };
 
         // Act

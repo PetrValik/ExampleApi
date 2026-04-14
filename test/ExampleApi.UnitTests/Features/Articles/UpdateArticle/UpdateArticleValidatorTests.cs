@@ -25,7 +25,7 @@ public class UpdateArticleValidatorTests
         Description = "Test Description",
         Price = 9.99m,
         Currency = "USD",
-        RowVersion = [1, 2, 3, 4, 5, 6, 7, 8]
+        RowVersion = 12345678u
     };
 
     /// <summary>
@@ -261,14 +261,14 @@ public class UpdateArticleValidatorTests
     }
 
     /// <summary>
-    /// Empty RowVersion byte array triggers a validation error as an empty token is unusable for concurrency control.
+    /// Zero RowVersion triggers a validation error as xmin=0 is the uninitialized default and unusable for concurrency control.
     /// </summary>
     [Fact]
-    public async Task ValidateAsync_WithEmptyRowVersion_ShouldFail()
+    public async Task ValidateAsync_WithZeroRowVersion_ShouldFail()
     {
         // Arrange
         var request = ValidRequest();
-        request.RowVersion = [];
+        request.RowVersion = 0u;
 
         // Act
         var result = await _validator.ValidateAsync(request);

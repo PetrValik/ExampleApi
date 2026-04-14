@@ -36,7 +36,7 @@ public sealed class UpdateArticleHandler(AppDbContext dbContext) : IUpdateArticl
 
         // Set the original RowVersion to the value the client had,
         // so EF Core compares it against the current DB value on save.
-        dbContext.Entry(article).Property(a => a.RowVersion).OriginalValue = request.RowVersion;
+        dbContext.Entry(article).Property(a => a.RowVersion).OriginalValue = request.RowVersion ?? 0u;
 
         article.Name = request.Name;
         article.Description = request.Description;

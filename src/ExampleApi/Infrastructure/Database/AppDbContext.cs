@@ -41,16 +41,19 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
                 .HasMaxLength(64);
 
             entity.Property(article => article.Price)
-                .HasColumnType("decimal(18,2)");
+                .HasColumnType("numeric(18,2)");
 
             entity.Property(article => article.Currency)
                 .HasMaxLength(3);
 
+            // xmin is a PostgreSQL system column that is automatically incremented
+            // on every row modification — used as a zero-overhead row version.
             entity.Property(article => article.RowVersion)
-                .IsRowVersion()
+                .HasColumnName("xmin")
+                .HasColumnType("xid")
                 .ValueGeneratedOnAddOrUpdate()
-                .IsConcurrencyToken()
-                .HasDefaultValueSql("randomblob(8)");
+                .IsRowVersion()
+                .IsConcurrencyToken();
         });
     }
 }

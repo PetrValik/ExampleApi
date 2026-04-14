@@ -42,5 +42,5 @@ public sealed class UpdateArticleRequest
     /// The client must send the row version received from a previous GET request.
     /// </summary>
     [JsonPropertyName("row_version")]
-    public byte[]? RowVersion { get; set; }
+    public uint? RowVersion { get; set; }
 }
