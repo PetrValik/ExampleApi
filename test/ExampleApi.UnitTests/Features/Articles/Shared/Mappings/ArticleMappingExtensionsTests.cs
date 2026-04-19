@@ -9,6 +9,9 @@ namespace ExampleApi.UnitTests.Features.Articles.Shared.Mappings;
 /// </summary>
 public class ArticleMappingExtensionsTests
 {
+    /// <summary>
+    /// All Article properties are correctly mapped to the response DTO.
+    /// </summary>
     [Fact]
     public void ToResponse_WithFullyPopulatedArticle_ShouldMapAllProperties()
     {
@@ -38,6 +41,9 @@ public class ArticleMappingExtensionsTests
         response.RowVersion.Should().Be(0x01020304u);
     }
 
+    /// <summary>
+    /// Nullable fields (Category, Currency) are mapped as null when not set.
+    /// </summary>
     [Fact]
     public void ToResponse_WithNullableFieldsNull_ShouldMapCorrectly()
     {
@@ -67,6 +73,9 @@ public class ArticleMappingExtensionsTests
         response.RowVersion.Should().Be(0u);
     }
 
+    /// <summary>
+    /// Zero price is preserved as-is in the response DTO.
+    /// </summary>
     [Fact]
     public void ToResponse_WithZeroPrice_ShouldMapCorrectly()
     {
@@ -89,6 +98,9 @@ public class ArticleMappingExtensionsTests
         response.Currency.Should().BeNull();
     }
 
+    /// <summary>
+    /// Decimal precision of price is preserved without rounding.
+    /// </summary>
     [Fact]
     public void ToResponse_WithDecimalPrice_ShouldPreservePrecision()
     {
@@ -109,6 +121,9 @@ public class ArticleMappingExtensionsTests
         response.Price.Should().Be(12.345m);
     }
 
+    /// <summary>
+    /// Large price values are mapped without overflow or truncation.
+    /// </summary>
     [Fact]
     public void ToResponse_WithLargePriceValue_ShouldMapCorrectly()
     {
@@ -130,6 +145,9 @@ public class ArticleMappingExtensionsTests
         response.Currency.Should().Be("USD");
     }
 
+    /// <summary>
+    /// Null Category value is preserved as null in the response DTO.
+    /// </summary>
     [Fact]
     public void ToResponse_WithEmptyCategory_ShouldMapAsNull()
     {
@@ -151,6 +169,9 @@ public class ArticleMappingExtensionsTests
         response.Category.Should().BeNull();
     }
 
+    /// <summary>
+    /// Non-zero RowVersion is correctly mapped to the response DTO.
+    /// </summary>
     [Fact]
     public void ToResponse_WithNonZeroRowVersion_ShouldMapValue()
     {
@@ -173,6 +194,9 @@ public class ArticleMappingExtensionsTests
         response.RowVersion.Should().Be(rowVersion);
     }
 
+    /// <summary>
+    /// Two articles mapped independently do not share state between their response DTOs.
+    /// </summary>
     [Fact]
     public void ToResponse_MultipleArticles_ShouldMapIndependently()
     {

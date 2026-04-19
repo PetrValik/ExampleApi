@@ -11,6 +11,9 @@ namespace ExampleApi.IntegrationTests.Features.Articles.GetArticle;
 /// </summary>
 public class GetArticleEndpointTests : IntegrationTestBase
 {
+    /// <summary>
+    /// Existing article returns 200 OK with the correct article body.
+    /// </summary>
     [Fact]
     public async Task GetArticle_WhenExists_ReturnsOkAndArticle()
     {
@@ -36,6 +39,9 @@ public class GetArticleEndpointTests : IntegrationTestBase
         article.Name.Should().Be("Get Test Product");
     }
 
+    /// <summary>
+    /// Non-existent article ID returns 404 Not Found.
+    /// </summary>
     [Fact]
     public async Task GetArticle_WhenNotExists_ReturnsNotFound()
     {

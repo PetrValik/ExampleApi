@@ -11,6 +11,9 @@ namespace ExampleApi.IntegrationTests.Features.Articles.CreateArticle;
 /// </summary>
 public class CreateArticleEndpointTests : IntegrationTestBase
 {
+    /// <summary>
+    /// Valid article data returns 201 Created with the created article body including a generated ID.
+    /// </summary>
     [Fact]
     public async Task CreateArticle_WithValidData_ReturnsOkAndArticleWithId()
     {
@@ -37,6 +40,9 @@ public class CreateArticleEndpointTests : IntegrationTestBase
         article.Currency.Should().Be("USD");
     }
 
+    /// <summary>
+    /// Article with an empty name returns 400 Bad Request.
+    /// </summary>
     [Fact]
     public async Task CreateArticle_WithInvalidData_ReturnsBadRequest()
     {
@@ -56,6 +62,9 @@ public class CreateArticleEndpointTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 
+    /// <summary>
+    /// Article with price 0 and no currency returns 201 Created (currency is only required when price &gt; 0).
+    /// </summary>
     [Fact]
     public async Task CreateArticle_WithFreePrice_DoesNotRequireCurrency()
     {
@@ -79,6 +88,9 @@ public class CreateArticleEndpointTests : IntegrationTestBase
         article.Currency.Should().BeNull();
     }
 
+    /// <summary>
+    /// Article with price &gt; 0 but no currency returns 400 Bad Request.
+    /// </summary>
     [Fact]
     public async Task CreateArticle_WithPriceButNoCurrency_ReturnsBadRequest()
     {

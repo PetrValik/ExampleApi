@@ -17,6 +17,7 @@ namespace ExampleApi.Features.Auth;
 /// </remarks>
 public sealed class TokenEndpoint : IEndpoint
 {
+    /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/auth/token", (

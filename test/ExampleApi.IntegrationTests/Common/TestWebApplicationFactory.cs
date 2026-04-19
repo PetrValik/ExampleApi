@@ -13,6 +13,9 @@ namespace ExampleApi.IntegrationTests.Common;
 /// </summary>
 public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
+    /// <summary>
+    /// Testcontainers-managed PostgreSQL instance used as the backing store for all integration tests.
+    /// </summary>
     private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
         .WithImage("postgres:16-alpine")
         .WithDatabase("exampleapi_test")
@@ -20,11 +23,19 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
         .WithPassword("postgres")
         .Build();
 
+    /// <summary>
+    /// Starts the PostgreSQL container before any test runs.
+    /// </summary>
     public async Task InitializeAsync()
     {
         await _postgres.StartAsync();
     }
 
+    /// <summary>
+    /// Replaces the production <see cref="AppDbContext"/> registration with one that targets
+    /// the Testcontainers PostgreSQL instance, then runs EF Core migrations.
+    /// </summary>
+    /// <param name="builder">The web host builder.</param>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureServices(services =>
@@ -50,6 +61,9 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
         builder.UseEnvironment("Development");
     }
 
+    /// <summary>
+    /// Stops and disposes the PostgreSQL container after all tests have finished.
+    /// </summary>
     public new async Task DisposeAsync()
     {
         await _postgres.DisposeAsync();

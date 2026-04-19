@@ -10,12 +10,18 @@ namespace ExampleApi.UnitTests.Common.Validation;
 /// </summary>
 public class ValidationFilterTests
 {
+    /// <summary>
+    /// Simple request model used as validation target in tests.
+    /// </summary>
     private class TestRequest
     {
         public string Name { get; set; } = string.Empty;
         public int Age { get; set; }
     }
 
+    /// <summary>
+    /// Validator that enforces non-empty Name and non-negative Age.
+    /// </summary>
     private class TestRequestValidator : AbstractValidator<TestRequest>
     {
         public TestRequestValidator()
@@ -28,6 +34,9 @@ public class ValidationFilterTests
         }
     }
 
+    /// <summary>
+    /// Validator with no rules — always passes validation.
+    /// </summary>
     private class AlwaysPassValidator : AbstractValidator<TestRequest>
     {
         public AlwaysPassValidator()
@@ -36,6 +45,9 @@ public class ValidationFilterTests
         }
     }
 
+    /// <summary>
+    /// Valid request returns null (no validation errors).
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithValidRequest_ShouldReturnNull()
     {
@@ -50,6 +62,9 @@ public class ValidationFilterTests
         result.Should().BeNull();
     }
 
+    /// <summary>
+    /// Invalid request returns a non-null validation problem result.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithInvalidRequest_ShouldReturnValidationProblem()
     {
@@ -64,6 +79,9 @@ public class ValidationFilterTests
         result.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Single error on one property returns a non-null result grouped by that property.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithSingleError_ShouldGroupByPropertyName()
     {
@@ -78,6 +96,9 @@ public class ValidationFilterTests
         result.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Multiple errors on the same property are all collected under the same key.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithMultipleErrorsOnSameProperty_ShouldGroupTogether()
     {
@@ -96,6 +117,9 @@ public class ValidationFilterTests
         result.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// The provided cancellation token is forwarded to the underlying FluentValidation call.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithCancellationToken_ShouldPassItToValidator()
     {
@@ -111,6 +135,9 @@ public class ValidationFilterTests
         result.Should().BeNull();
     }
 
+    /// <summary>
+    /// Errors on multiple properties are grouped into separate dictionary entries.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithMultipleProperties_ShouldGroupByPropertyName()
     {
@@ -125,6 +152,9 @@ public class ValidationFilterTests
         result.Should().NotBeNull();
     }
 
+    /// <summary>
+    /// Default cancellation token (<c>default</c>) is accepted without throwing.
+    /// </summary>
     [Fact]
     public async Task ValidateAsync_WithDefaultCancellationToken_ShouldWork()
     {

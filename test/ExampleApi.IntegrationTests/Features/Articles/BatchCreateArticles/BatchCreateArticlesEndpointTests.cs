@@ -11,6 +11,9 @@ namespace ExampleApi.IntegrationTests.Features.Articles.BatchCreateArticles;
 /// </summary>
 public class BatchCreateArticlesEndpointTests : IntegrationTestBase
 {
+    /// <summary>
+    /// Builds a valid <see cref="ArticleRequest"/> with the given name and fixed test values.
+    /// </summary>
     private static ArticleRequest CreateValidArticleRequest(string name) => new()
     {
         Name = name,
@@ -19,8 +22,14 @@ public class BatchCreateArticlesEndpointTests : IntegrationTestBase
         Currency = "USD"
     };
 
+    /// <summary>
+    /// Expected product names used to verify the batch create response.
+    /// </summary>
     private static readonly string[] ExpectedProductNames = ["Batch Product 1", "Batch Product 2", "Batch Product 3"];
 
+    /// <summary>
+    /// Valid list of three articles returns 201 Created with all articles in the response body.
+    /// </summary>
     [Fact]
     public async Task BatchCreateArticles_WithValidData_ReturnsOkAndAllArticles()
     {
@@ -44,6 +53,9 @@ public class BatchCreateArticlesEndpointTests : IntegrationTestBase
         articles!.Select(a => a.Name).Should().Contain(ExpectedProductNames);
     }
 
+    /// <summary>
+    /// List containing an article with an empty name returns 400 Bad Request.
+    /// </summary>
     [Fact]
     public async Task BatchCreateArticles_WithInvalidData_ReturnsBadRequest()
     {

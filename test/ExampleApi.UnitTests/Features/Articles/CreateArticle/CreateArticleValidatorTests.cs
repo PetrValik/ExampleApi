@@ -9,8 +9,14 @@ namespace ExampleApi.UnitTests.Features.Articles.CreateArticle;
 /// </summary>
 public class CreateArticleValidatorTests
 {
+    /// <summary>
+    /// The validator under test.
+    /// </summary>
     private readonly ArticleRequestValidator _validator;
 
+    /// <summary>
+    /// Initializes a new instance of the validator under test.
+    /// </summary>
     public CreateArticleValidatorTests()
     {
         _validator = new ArticleRequestValidator();

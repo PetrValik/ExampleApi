@@ -128,6 +128,9 @@ public static class ServiceCollectionExtensions
     }
 
 
+    /// <summary>
+    /// Configures routing options, including the regex inline route constraint policy.
+    /// </summary>
     /// <param name="services">The service collection.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddRoutingConfiguration(this IServiceCollection services)

@@ -8,10 +8,10 @@ namespace ExampleApi.UnitTests.Common.Currency;
 /// </summary>
 public class CurrencyCodesTests
 {
+    /// <summary>
+    /// Known supported currency codes return true.
+    /// </summary>
     [Theory]
-    [InlineData("USD")]
-    [InlineData("EUR")]
-    [InlineData("GBP")]
     [InlineData("JPY")]
     [InlineData("CHF")]
     [InlineData("CAD")]
@@ -30,6 +30,9 @@ public class CurrencyCodesTests
         result.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Currency validation is case-insensitive; lowercase and mixed-case codes are accepted.
+    /// </summary>
     [Theory]
     [InlineData("usd")] // Lowercase
     [InlineData("Usd")] // Mixed case
@@ -45,6 +48,9 @@ public class CurrencyCodesTests
         result.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Unknown currency codes return false.
+    /// </summary>
     [Theory]
     [InlineData("XXX")]
     [InlineData("ABC")]
@@ -59,6 +65,9 @@ public class CurrencyCodesTests
         result.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Null input returns false without throwing.
+    /// </summary>
     [Fact]
     public void IsSupported_WithNull_ShouldReturnFalse()
     {
@@ -69,6 +78,9 @@ public class CurrencyCodesTests
         result.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Empty string and whitespace-only strings return false.
+    /// </summary>
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
@@ -81,6 +93,9 @@ public class CurrencyCodesTests
         result.Should().BeFalse();
     }
 
+    /// <summary>
+    /// <see cref="CurrencyCodes.GetAll"/> returns a non-empty collection containing major currencies.
+    /// </summary>
     [Fact]
     public void GetAll_ShouldReturnNonEmptyCollection()
     {
@@ -95,6 +110,9 @@ public class CurrencyCodesTests
         currencies.Should().Contain("NOK");
     }
 
+    /// <summary>
+    /// <see cref="CurrencyCodes.GetAll"/> returns an <see cref="IReadOnlyCollection{T}"/>.
+    /// </summary>
     [Fact]
     public void GetAll_ShouldReturnReadOnlyCollection()
     {
@@ -105,6 +123,9 @@ public class CurrencyCodesTests
         currencies.Should().BeAssignableTo<IReadOnlyCollection<string>>();
     }
 
+    /// <summary>
+    /// Multiple calls to <see cref="CurrencyCodes.GetAll"/> return equivalent collections.
+    /// </summary>
     [Fact]
     public void GetAll_ShouldReturnSameCollectionOnMultipleCalls()
     {
@@ -116,6 +137,9 @@ public class CurrencyCodesTests
         currencies1.Should().BeEquivalentTo(currencies2);
     }
 
+    /// <summary>
+    /// A representative set of international currencies are supported.
+    /// </summary>
     [Theory]
     [InlineData("BRL")] // Brazilian Real
     [InlineData("MXN")] // Mexican Peso

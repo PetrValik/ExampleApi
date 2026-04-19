@@ -11,6 +11,9 @@ namespace ExampleApi.IntegrationTests.Features.Articles.DeleteArticle;
 /// </summary>
 public class DeleteArticleEndpointTests : IntegrationTestBase
 {
+    /// <summary>
+    /// Creates an article via the API and returns the deserialized response.
+    /// </summary>
     private async Task<ArticleResponse> CreateArticleAsync(string name = "Test Article")
     {
         var request = new ArticleRequest
@@ -24,6 +27,9 @@ public class DeleteArticleEndpointTests : IntegrationTestBase
         return (await response.Content.ReadFromJsonAsync<ArticleResponse>())!;
     }
 
+    /// <summary>
+    /// Existing article ID returns 204 No Content.
+    /// </summary>
     [Fact]
     public async Task DeleteArticle_WithExistingId_ReturnsNoContent()
     {
@@ -37,6 +43,9 @@ public class DeleteArticleEndpointTests : IntegrationTestBase
         response.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
+    /// <summary>
+    /// After deletion the article is no longer retrievable and GET returns 404.
+    /// </summary>
     [Fact]
     public async Task DeleteArticle_WithExistingId_ArticleIsNoLongerRetrievable()
     {
@@ -51,6 +60,9 @@ public class DeleteArticleEndpointTests : IntegrationTestBase
         getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
+    /// <summary>
+    /// Non-existent article ID returns 404 Not Found.
+    /// </summary>
     [Fact]
     public async Task DeleteArticle_WithNonExistentId_ReturnsNotFound()
     {

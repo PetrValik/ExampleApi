@@ -9,8 +9,14 @@ namespace ExampleApi.UnitTests.Features.Articles.BatchCreateArticles;
 /// </summary>
 public class BatchCreateArticlesValidatorTests
 {
+    /// <summary>
+    /// The validator under test.
+    /// </summary>
     private readonly BatchCreateArticlesValidator _validator;
 
+    /// <summary>
+    /// Initializes a new instance of the validator under test.
+    /// </summary>
     public BatchCreateArticlesValidatorTests()
     {
         _validator = new BatchCreateArticlesValidator();

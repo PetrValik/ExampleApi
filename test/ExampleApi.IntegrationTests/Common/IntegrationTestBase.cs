@@ -10,10 +10,24 @@ namespace ExampleApi.IntegrationTests.Common;
 /// </summary>
 public abstract class IntegrationTestBase : IAsyncLifetime
 {
+    /// <summary>
+    /// Deserialization model for the token endpoint response.
+    /// </summary>
     private sealed record TokenPayload(string Token, DateTime ExpiresAt);
+
+    /// <summary>
+    /// The <see cref="TestWebApplicationFactory"/> used for the current test.
+    /// </summary>
     protected TestWebApplicationFactory Factory = null!;
+
+    /// <summary>
+    /// Pre-authenticated HTTP client for making requests against the test server.
+    /// </summary>
     protected HttpClient Client = null!;
 
+    /// <summary>
+    /// Starts the factory, authenticates a client and resets the database to a clean state.
+    /// </summary>
     public async Task InitializeAsync()
     {
         Factory = new TestWebApplicationFactory();
@@ -35,6 +49,9 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         await db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Disposes the HTTP client and the factory (including the Testcontainers PostgreSQL instance).
+    /// </summary>
     public async Task DisposeAsync()
     {
         Client?.Dispose();

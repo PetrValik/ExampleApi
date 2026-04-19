@@ -12,9 +12,19 @@ namespace ExampleApi.UnitTests.Features.Articles.DeleteArticle;
 /// </summary>
 public class DeleteArticleHandlerTests : IDisposable
 {
+    /// <summary>
+    /// In-memory <see cref="AppDbContext"/> used to verify persistence.
+    /// </summary>
     private readonly AppDbContext _dbContext;
+
+    /// <summary>
+    /// The handler under test.
+    /// </summary>
     private readonly DeleteArticleHandler _handler;
 
+    /// <summary>
+    /// Initializes the in-memory database and the handler under test.
+    /// </summary>
     public DeleteArticleHandlerTests()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -25,12 +35,18 @@ public class DeleteArticleHandlerTests : IDisposable
         _handler = new DeleteArticleHandler(_dbContext);
     }
 
+    /// <summary>
+    /// Disposes the in-memory database context.
+    /// </summary>
     public void Dispose()
     {
         _dbContext.Dispose();
         GC.SuppressFinalize(this);
     }
 
+    /// <summary>
+    /// Inserts a test article into the database and returns it.
+    /// </summary>
     private async Task<Article> SeedArticleAsync(string name = "Test Article")
     {
         var article = new Article

@@ -11,9 +11,19 @@ namespace ExampleApi.UnitTests.Features.Articles.GetArticles;
 /// </summary>
 public class GetArticlesHandlerTests : IDisposable
 {
+    /// <summary>
+    /// In-memory <see cref="AppDbContext"/> pre-seeded with test articles.
+    /// </summary>
     private readonly AppDbContext _dbContext;
+
+    /// <summary>
+    /// The handler under test.
+    /// </summary>
     private readonly GetArticlesHandler _handler;
 
+    /// <summary>
+    /// Initializes the in-memory database, seeds test articles and creates the handler under test.
+    /// </summary>
     public GetArticlesHandlerTests()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -26,6 +36,9 @@ public class GetArticlesHandlerTests : IDisposable
         SeedTestData();
     }
 
+    /// <summary>
+    /// Seeds three articles with different names, categories and prices.
+    /// </summary>
     private void SeedTestData()
     {
         var articles = new[]
@@ -428,6 +441,9 @@ public class GetArticlesHandlerTests : IDisposable
         response.Items.Should().HaveCount(3);
     }
 
+    /// <summary>
+    /// Disposes the in-memory database context.
+    /// </summary>
     public void Dispose()
     {
         _dbContext.Dispose();

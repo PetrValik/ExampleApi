@@ -12,14 +12,39 @@ namespace ExampleApi.UnitTests.Features.Articles.BatchCreateArticles;
 /// </summary>
 public class BatchCreateArticlesHandlerTests : IDisposable
 {
+    /// <summary>
+    /// Root DI container used to resolve <see cref="IServiceScopeFactory"/> for handler construction.
+    /// </summary>
     private readonly ServiceProvider _serviceProvider;
+
+    /// <summary>
+    /// Scope factory passed to the handler under test.
+    /// </summary>
     private readonly IServiceScopeFactory _scopeFactory;
+
+    /// <summary>
+    /// The handler under test.
+    /// </summary>
     private readonly BatchCreateArticlesHandler _handler;
+
+    /// <summary>
+    /// Unique in-memory database name that isolates each test class instance.
+    /// </summary>
     private readonly string _databaseName;
 
+    /// <summary>
+    /// Named arrays used in assertions so that xUnit displays human-readable mismatches.
+    /// </summary>
     private static readonly string[] Product123Names = ["Product 1", "Product 2", "Product 3"];
+
+    /// <summary>
+    /// Named arrays used in assertions so that xUnit displays human-readable mismatches.
+    /// </summary>
     private static readonly string[] Persisted12Names = ["Persisted 1", "Persisted 2"];
 
+    /// <summary>
+    /// Initializes the in-memory database and the handler under test.
+    /// </summary>
     public BatchCreateArticlesHandlerTests()
     {
         _databaseName = $"TestDb_{Guid.NewGuid()}";
@@ -32,6 +57,9 @@ public class BatchCreateArticlesHandlerTests : IDisposable
         _handler = new BatchCreateArticlesHandler(_scopeFactory);
     }
 
+    /// <summary>
+    /// Deletes the in-memory database and disposes the service provider.
+    /// </summary>
     public void Dispose()
     {
         // Clean up the in-memory database

@@ -10,6 +10,9 @@ namespace ExampleApi.IntegrationTests.Features.Health;
 /// </summary>
 public class HealthEndpointTests : IntegrationTestBase
 {
+    /// <summary>
+    /// Health endpoint returns 200 OK with <c>status: "healthy"</c>.
+    /// </summary>
     [Fact]
     public async Task Health_ReturnsOkWithHealthyStatus()
     {
@@ -23,6 +26,9 @@ public class HealthEndpointTests : IntegrationTestBase
         result!.Status.Should().Be("healthy");
     }
 
+    /// <summary>
+    /// Repeated calls to the health endpoint all return 200 OK.
+    /// </summary>
     [Fact]
     public async Task Health_CanBeCalledMultipleTimes()
     {
@@ -37,5 +43,8 @@ public class HealthEndpointTests : IntegrationTestBase
         response3.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
+    /// <summary>
+    /// Deserialization model for the health endpoint response body.
+    /// </summary>
     private record HealthResponse(string Status);
 }

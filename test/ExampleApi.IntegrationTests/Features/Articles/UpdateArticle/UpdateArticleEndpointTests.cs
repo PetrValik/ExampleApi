@@ -12,6 +12,9 @@ namespace ExampleApi.IntegrationTests.Features.Articles.UpdateArticle;
 /// </summary>
 public class UpdateArticleEndpointTests : IntegrationTestBase
 {
+    /// <summary>
+    /// Creates an article via the API and returns the deserialized response.
+    /// </summary>
     private async Task<ArticleResponse> CreateArticleAsync(string name)
     {
         var request = new ArticleRequest
@@ -25,6 +28,9 @@ public class UpdateArticleEndpointTests : IntegrationTestBase
         return (await response.Content.ReadFromJsonAsync<ArticleResponse>())!;
     }
 
+    /// <summary>
+    /// Valid update request returns 200 OK with the updated article body.
+    /// </summary>
     [Fact]
     public async Task UpdateArticle_WithValidData_ReturnsOkAndUpdatedArticle()
     {
@@ -52,6 +58,9 @@ public class UpdateArticleEndpointTests : IntegrationTestBase
         updatedArticle.Currency.Should().Be("EUR");
     }
 
+    /// <summary>
+    /// Update request with a stale <c>RowVersion</c> returns 409 Conflict.
+    /// </summary>
     [Fact]
     public async Task UpdateArticle_WithStaleRowVersion_ReturnsConflict()
     {

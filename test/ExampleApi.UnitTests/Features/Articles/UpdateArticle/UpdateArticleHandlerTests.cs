@@ -13,9 +13,19 @@ namespace ExampleApi.UnitTests.Features.Articles.UpdateArticle;
 /// </summary>
 public class UpdateArticleHandlerTests : IDisposable
 {
+    /// <summary>
+    /// In-memory <see cref="AppDbContext"/> used to seed and verify article data.
+    /// </summary>
     private readonly AppDbContext _dbContext;
+
+    /// <summary>
+    /// The handler under test.
+    /// </summary>
     private readonly UpdateArticleHandler _handler;
 
+    /// <summary>
+    /// Initializes the in-memory database and the handler under test.
+    /// </summary>
     public UpdateArticleHandlerTests()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -167,6 +177,9 @@ public class UpdateArticleHandlerTests : IDisposable
             .WithMessage($"Article with ID {nonExistingId} was not found.");
     }
 
+    /// <summary>
+    /// Disposes the in-memory database context.
+    /// </summary>
     public void Dispose()
     {
         _dbContext.Dispose();

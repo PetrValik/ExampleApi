@@ -12,9 +12,19 @@ namespace ExampleApi.UnitTests.Features.Articles.CreateArticle;
 /// </summary>
 public class CreateArticleHandlerTests : IDisposable
 {
+    /// <summary>
+    /// In-memory <see cref="AppDbContext"/> used to verify persistence.
+    /// </summary>
     private readonly AppDbContext _dbContext;
+
+    /// <summary>
+    /// The handler under test.
+    /// </summary>
     private readonly CreateArticleHandler _handler;
 
+    /// <summary>
+    /// Initializes the in-memory database and the handler under test.
+    /// </summary>
     public CreateArticleHandlerTests()
     {
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -106,6 +116,9 @@ public class CreateArticleHandlerTests : IDisposable
         response.Currency.Should().BeNull();
     }
 
+    /// <summary>
+    /// Disposes the in-memory database context.
+    /// </summary>
     public void Dispose()
     {
         _dbContext.Dispose();

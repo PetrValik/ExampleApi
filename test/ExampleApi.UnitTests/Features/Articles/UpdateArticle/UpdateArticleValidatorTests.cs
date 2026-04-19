@@ -9,8 +9,14 @@ namespace ExampleApi.UnitTests.Features.Articles.UpdateArticle;
 /// </summary>
 public class UpdateArticleValidatorTests
 {
+    /// <summary>
+    /// The validator under test.
+    /// </summary>
     private readonly UpdateArticleValidator _validator;
 
+    /// <summary>
+    /// Initializes a new instance of the validator under test.
+    /// </summary>
     public UpdateArticleValidatorTests()
     {
         _validator = new UpdateArticleValidator();

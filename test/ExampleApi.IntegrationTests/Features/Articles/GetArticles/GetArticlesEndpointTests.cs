@@ -12,6 +12,9 @@ namespace ExampleApi.IntegrationTests.Features.Articles.GetArticles;
 /// </summary>
 public class GetArticlesEndpointTests : IntegrationTestBase
 {
+    /// <summary>
+    /// Builds a valid <see cref="ArticleRequest"/> with the given name and fixed test values.
+    /// </summary>
     private static ArticleRequest CreateValidArticleRequest(string name) => new()
     {
         Name = name,
@@ -20,6 +23,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         Currency = "USD"
     };
 
+    /// <summary>
+    /// No filters return all created articles with correct pagination metadata.
+    /// </summary>
     [Fact]
     public async Task GetArticles_ReturnsAllArticles()
     {
@@ -42,6 +48,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.TotalCount.Should().Be(2);
     }
 
+    /// <summary>
+    /// Name filter returns only articles whose name contains the search term (partial, case-insensitive).
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithNameFilter_ReturnsFilteredArticles()
     {
@@ -61,6 +70,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.TotalCount.Should().Be(1);
     }
 
+    /// <summary>
+    /// Category filter returns only articles with an exact category match.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithCategoryFilter_ReturnsOnlyMatchingCategory()
     {
@@ -85,6 +97,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.TotalCount.Should().Be(1);
     }
 
+    /// <summary>
+    /// Explicit page and page-size parameters return the correct subset of results.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithPagination_ReturnsCorrectPage()
     {
@@ -110,6 +125,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.HasNext.Should().BeTrue();
     }
 
+    /// <summary>
+    /// Page size above the maximum (100) is clamped to 100.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithPageSizeExceedingMax_ClampsToMaximum()
     {
@@ -130,6 +148,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.Items.Should().HaveCount(5);
     }
 
+    /// <summary>
+    /// Page number 0 defaults to page 1.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithInvalidPageNumber_DefaultsToPageOne()
     {
@@ -146,6 +167,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse!.Page.Should().Be(1); // Defaults to 1
     }
 
+    /// <summary>
+    /// Empty database returns 200 OK with an empty items list and zero totals.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithNoArticles_ReturnsEmptyList()
     {
@@ -165,6 +189,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.HasNext.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Name filter with no matching articles returns an empty list.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithNameFilterNoMatches_ReturnsEmptyList()
     {
@@ -183,6 +210,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.TotalCount.Should().Be(0);
     }
 
+    /// <summary>
+    /// Category filter with no matching articles returns an empty list.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithCategoryFilterNoMatches_ReturnsEmptyList()
     {
@@ -202,6 +232,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.TotalCount.Should().Be(0);
     }
 
+    /// <summary>
+    /// Combining name and category filters narrows results to articles matching both criteria.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithBothFilters_ReturnsMatchingResults()
     {
@@ -226,6 +259,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.Items[0].Category.Should().Be("Electronics");
     }
 
+    /// <summary>
+    /// The last page of results has <c>HasNext</c> set to false.
+    /// </summary>
     [Fact]
     public async Task GetArticles_LastPage_HasNextIsFalse()
     {
@@ -247,6 +283,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.HasPrevious.Should().BeTrue();
     }
 
+    /// <summary>
+    /// A page number beyond the total pages returns 200 OK with an empty items list.
+    /// </summary>
     [Fact]
     public async Task GetArticles_PageBeyondTotal_ReturnsEmptyPage()
     {
@@ -265,6 +304,9 @@ public class GetArticlesEndpointTests : IntegrationTestBase
         pagedResponse.TotalCount.Should().Be(1);
     }
 
+    /// <summary>
+    /// Negative page size is clamped to the minimum of 1.
+    /// </summary>
     [Fact]
     public async Task GetArticles_WithNegativePageSize_ClampsToMinimum()
     {
