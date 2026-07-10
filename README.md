@@ -1,346 +1,219 @@
 # Example API
 
-A demonstration RESTful API for article (product) management showcasing modern .NET development practices and clean architecture.
+> A production-style RESTful API for article/product management, built to showcase modern .NET development — Vertical Slice Architecture, Minimal APIs, PostgreSQL with EF Core, JWT authentication, and a thorough automated test suite.
+
+![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
 ## Overview
 
-This project demonstrates professional API development with .NET 10, featuring:
+**Example API** is a demonstration back-end service for managing shop articles (products). It is intentionally small in domain scope but built the way a real production service would be: features are sliced vertically, requests are validated at the edge, errors map to RFC 7807 problem-details responses, the database uses optimistic concurrency, and every slice is covered by both unit and integration tests.
 
-- **Vertical Slice Architecture** - Features organized by business capability
-- **Comprehensive Testing** - 156 tests achieving ~100% code coverage
-- **Clean Code** - SOLID principles and separation of concerns
-- **Modern .NET Stack** - Latest framework features and best practices
-- **Production Patterns** - Validation, error handling, and optimistic concurrency
+The project exists as a portfolio piece to demonstrate practical, current .NET back-end skills rather than to ship a specific product.
 
-## Technology Stack
+## Highlights
 
-| Category | Technology |
-|----------|-----------|
-| Framework | .NET 10 |
-| Database | SQLite with Entity Framework Core 10.0 |
-| Validation | FluentValidation |
-| Documentation | OpenAPI + Scalar UI |
-| Testing | xUnit + FluentAssertions |
-| Architecture | Vertical Slice Architecture |
+- **Vertical Slice Architecture** — each feature (create, read, update, delete, batch, auth) is a self-contained folder with its own endpoint, handler, request/response DTOs, and validators.
+- **Minimal APIs** — endpoints are auto-discovered and registered through a small `IEndpoint` abstraction, keeping `Program.cs` lean.
+- **PostgreSQL + EF Core 10** — real relational persistence with EF Core migrations and connection configuration via app settings / environment variables.
+- **Optimistic concurrency** — update conflicts are detected using PostgreSQL's native `xmin` system column mapped to a `RowVersion` property, returning `409 Conflict` on stale writes.
+- **JWT Bearer authentication** — a token endpoint issues signed JWTs; write endpoints require authorization, wired through into the OpenAPI/Scalar security scheme.
+- **FluentValidation** — declarative request validation runs before handlers via a reusable validation filter, producing `400` validation-problem responses.
+- **Global exception handling** — a single middleware maps domain exceptions (`NotFoundException`, `ConflictException`) and unexpected errors to consistent `ProblemDetails` payloads.
+- **Interactive docs** — OpenAPI document plus a [Scalar](https://scalar.com/) UI with request examples and a "try it out" experience.
+- **Containerised** — multi-stage `Dockerfile` and a `docker-compose.yml` that brings up the API together with PostgreSQL.
+- **150+ automated tests** — xUnit + FluentAssertions, with integration tests running against a real PostgreSQL instance spun up on the fly via Testcontainers.
 
-## Quick Start
+## Tech stack
+
+| Category            | Technology |
+|---------------------|------------|
+| Framework           | .NET 10 / ASP.NET Core Minimal APIs |
+| Language            | Modern C# (records, required members, collection expressions, nullable reference types) |
+| Database            | PostgreSQL 16 |
+| Data access         | Entity Framework Core 10 (Npgsql provider) |
+| Authentication      | JWT Bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`) |
+| Validation          | FluentValidation 11 |
+| API documentation   | OpenAPI (`Microsoft.AspNetCore.OpenApi`) + Scalar UI |
+| Testing             | xUnit, FluentAssertions, EF Core InMemory (unit), Testcontainers (integration), Coverlet |
+| Containerisation    | Docker + Docker Compose |
+| Architecture        | Vertical Slice Architecture, REPR (Request–Endpoint–Response) |
+
+## Getting started
 
 ### Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- IDE: Visual Studio 2026, VS Code, or Rider
+- A running **PostgreSQL** instance (or use the provided Docker Compose setup)
+- Docker (optional, for containerised run and for integration tests)
 
-### Running the Application
+### Option A — Run with Docker Compose (API + PostgreSQL)
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/example-api.git
-cd example-api
-
-# Run the application
-cd src/ExampleApi
-dotnet run
-
-# Access the API documentation
-# Navigate to http://localhost:5088/scalar/v1
-```
-
-### Running Tests
+This is the quickest way to get a fully working stack:
 
 ```bash
-# Run all tests (156 tests)
-dotnet test
-
-# Run only unit tests (128 tests)
-dotnet test test/ExampleApi.UnitTests
-
-# Run only integration tests (28 tests)
-dotnet test test/ExampleApi.IntegrationTests
+docker compose up --build
 ```
 
-## Project Structure
+The API becomes available at `http://localhost:8080`. Compose provisions a `postgres:16-alpine` container, waits for it to be healthy, and wires the connection string and JWT settings through environment variables.
+
+### Option B — Run locally with `dotnet run`
+
+1. Start PostgreSQL and make sure the connection string in `src/ExampleApi/appsettings.json` matches your instance (defaults to `Host=localhost;Port=5432;Database=exampleapi;Username=postgres;Password=postgres`).
+2. Run the API:
+
+   ```bash
+   cd src/ExampleApi
+   dotnet run
+   ```
+
+3. Open the interactive docs at **http://localhost:5088/scalar/v1**.
+
+On startup the application initialises the database (applies migrations / seeds data) automatically.
+
+### Authenticating
+
+Write operations require a JWT. Obtain one from the token endpoint using the demo credentials:
+
+```bash
+curl -X POST http://localhost:5088/auth/token \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin"}'
+```
+
+Then send the returned token as `Authorization: Bearer <token>` on protected requests. In the Scalar UI you can paste the token into the **Bearer** auth field.
+
+> The token endpoint uses hardcoded demo credentials (`admin` / `admin`) on purpose — it is a stand-in for a real identity provider and is clearly marked as such in the code.
+
+## API endpoints
+
+### Authentication
+
+| Method | Endpoint       | Description                        | Auth |
+|--------|----------------|------------------------------------|------|
+| POST   | `/auth/token`  | Issue a JWT for the demo user      | none |
+
+### Articles
+
+| Method | Endpoint                     | Description                             | Status codes        | Auth |
+|--------|------------------------------|-----------------------------------------|---------------------|------|
+| GET    | `/api/articles`              | List articles with filters + pagination | 200                 | none |
+| GET    | `/api/articles/{id}`         | Get a single article by id              | 200, 404            | none |
+| POST   | `/api/articles`              | Create an article                       | 201, 400            | JWT  |
+| PUT    | `/api/articles/{id}`         | Update an article                       | 200, 400, 404, 409  | JWT  |
+| DELETE | `/api/articles/{id}`         | Delete an article                       | 204, 404            | JWT  |
+| POST   | `/api/articles-concurrent`   | Batch-create articles in parallel       | 201, 400            | JWT  |
+
+### Health
+
+| Method | Endpoint  | Description        |
+|--------|-----------|--------------------|
+| GET    | `/health` | API health status  |
+
+**Query parameters for `GET /api/articles`:**
+
+- `name` — partial, case-insensitive name match
+- `category` — exact category match
+- `page` — page number (default `1`)
+- `pageSize` — items per page (default `10`, max `100`)
+
+Paginated responses carry metadata (`totalCount`, `page`, `pageSize`, `hasNext`, `hasPrevious`).
+
+## Project structure
 
 ```
 ExampleApi/
 ├── src/
-│   └── ExampleApi/                    # Main API project
-│       ├── Features/                  # Feature slices
-│       │   ├── Articles/              # Article management
-│       │   │   ├── Shared/            # Common DTOs, models, validators
-│       │   │   ├── CreateArticle/     # POST /api/articles
-│       │   │   ├── GetArticle/        # GET /api/articles/{id}
-│       │   │   ├── GetArticles/       # GET /api/articles (with filters)
-│       │   │   ├── UpdateArticle/     # PUT /api/articles/{id}
-│       │   │   ├── DeleteArticle/     # DELETE /api/articles/{id}
-│       │   │   └── BatchCreateArticles/ # POST /api/articles-concurrent
-│       │   └── Health/                # Health check endpoint
-│       ├── Common/                    # Shared utilities
-│       │   ├── Endpoints/             # Endpoint registration
-│       │   ├── Validation/            # Validation helpers
-│       │   ├── Exceptions/            # Custom exceptions
-│       │   ├── Currency/              # Currency validation
-│       │   └── Pagination/            # Pagination models
-│       ├── Infrastructure/            # Database and persistence
-│       │   └── Database/              # EF Core context and migrations
-│       ├── Configuration/             # Service registration
-│       └── Program.cs                 # Application entry point
+│   └── ExampleApi/
+│       ├── Features/                     # Vertical slices
+│       │   ├── Auth/                      # POST /auth/token (JWT issuance)
+│       │   ├── Articles/
+│       │   │   ├── Shared/                # Article entity, DTOs, mappings, shared validator
+│       │   │   ├── CreateArticle/         # POST /api/articles
+│       │   │   ├── GetArticle/            # GET  /api/articles/{id}
+│       │   │   ├── GetArticles/           # GET  /api/articles (filter + paging)
+│       │   │   ├── UpdateArticle/         # PUT  /api/articles/{id}
+│       │   │   ├── DeleteArticle/         # DELETE /api/articles/{id}
+│       │   │   └── BatchCreateArticles/   # POST /api/articles-concurrent
+│       │   └── Health/                    # GET /health
+│       ├── Common/
+│       │   ├── Endpoints/                 # IEndpoint abstraction + auto-registration
+│       │   ├── Validation/                # Reusable validation filter
+│       │   ├── Exceptions/                # NotFoundException, ConflictException
+│       │   ├── Currency/                  # ISO 4217 currency validation
+│       │   └── Pagination/                # PagedResponse<T>
+│       ├── Infrastructure/Database/       # AppDbContext, migrations, initializer
+│       ├── Configuration/                 # Service + middleware extension methods, JwtSettings
+│       └── Program.cs                     # Slim entry point wiring it all together
 ├── test/
-│   ├── ExampleApi.UnitTests/          # 128 unit tests
-│   └── ExampleApi.IntegrationTests/   # 28 integration tests
-└── README.md                          # This file
+│   ├── ExampleApi.UnitTests/              # Handlers, validators, mappings, utilities
+│   └── ExampleApi.IntegrationTests/       # Full HTTP cycle over a real PostgreSQL container
+├── Dockerfile                            # Multi-stage build
+├── docker-compose.yml                    # API + PostgreSQL
+└── ExampleApi.slnx                       # Solution
 ```
 
-## API Endpoints
-
-### Articles Management
-
-| Method | Endpoint | Description | Status Codes |
-|--------|----------|-------------|--------------|
-| POST | `/api/articles` | Create a new article | 201, 400 |
-| GET | `/api/articles/{id}` | Get article by ID | 200, 404 |
-| GET | `/api/articles` | List articles with filters | 200 |
-| PUT | `/api/articles/{id}` | Update an article | 200, 400, 404, 409 |
-| DELETE | `/api/articles/{id}` | Delete an article | 204, 404 |
-| POST | `/api/articles-concurrent` | Batch create articles | 200, 400 |
-
-### Health Check
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | API health status |
-
-### Query Parameters (GET /api/articles)
-
-- `name` - Filter by name (partial match, case-insensitive)
-- `category` - Filter by category (exact match)
-- `page` - Page number (default: 1)
-- `pageSize` - Items per page (default: 10, max: 100)
-
-## Features
-
-### Validation
-
-- **FluentValidation** - Declarative validation rules
-- **Request validation** - Automatic validation before handler execution
-- **Business rules** - Currency required for priced items
-- **Input constraints** - Length limits, format validation
-
-### Error Handling
-
-- **Global exception handler** - Consistent error responses
-- **404 Not Found** - Resource not found exceptions
-- **409 Conflict** - Optimistic concurrency violations
-- **400 Bad Request** - Validation failures with detailed errors
-
-### Concurrency Control
-
-- **Optimistic locking** - Row versioning with SQLite triggers
-- **Conflict detection** - Automatic detection of concurrent updates
-- **Retry guidance** - Clients receive current version on conflicts
-
-### Pagination
-
-- **Efficient queries** - Skip/Take with proper metadata
-- **Navigation support** - HasNext, HasPrevious indicators
-- **Configurable limits** - Protect against excessive data retrieval
-
-## Architecture
-
-### Vertical Slice Architecture
-
-Each feature is organized as a self-contained vertical slice:
+Each feature slice follows the same shape:
 
 ```
 Feature/
-├── README.md              # Feature documentation
-├── IHandler.cs           # Handler interface
-├── Handler.cs            # Business logic
-├── Endpoint.cs           # HTTP endpoint
-├── Request.cs            # Request DTO (if specific)
-└── Validator.cs          # Validation rules (if specific)
+├── IHandler.cs        # Handler interface (for DI + testability)
+├── Handler.cs         # Business logic
+├── Endpoint.cs        # HTTP mapping (implements IEndpoint)
+├── Request.cs         # Request DTO (when feature-specific)
+├── Validator.cs       # FluentValidation rules (when feature-specific)
+└── README.md          # Short feature note
 ```
 
-**Benefits:**
+## Architecture notes
 
-- **Feature isolation** - Changes don't ripple across the codebase
-- **Easy navigation** - All code for a feature in one place
-- **Independent testing** - Each slice tested in isolation
-- **Team scalability** - Multiple teams work without conflicts
-- **Clear boundaries** - Shared vs. feature-specific components
+- **REPR pattern** — every endpoint is a thin adapter: it validates the request, delegates to a handler, and shapes the response. Handlers hold the business logic behind an interface so they can be unit-tested without HTTP.
+- **Endpoint auto-registration** — all `IEndpoint` implementations are discovered and mapped via `MapEndpoints()`, so adding a feature never means editing a central router.
+- **Composition in `Program.cs`** — service registration and the middleware pipeline are expressed as small, well-named extension methods (`AddDatabaseContext`, `AddJwtAuthentication`, `AddFeatures`, `UseGlobalExceptionHandler`, …), keeping the entry point readable.
+- **Optimistic concurrency** — the `Article.RowVersion` property maps to PostgreSQL's `xmin` system column; concurrent updates raise a `ConflictException` that surfaces as `409 Conflict`, so clients can refetch and retry.
 
-### Dependency Injection
+## Tests
 
-- **Scoped services** - Handlers registered per request
-- **Interface-based** - Easy mocking and testing
-- **Feature registration** - Each feature registers its own services
+The suite mixes fast unit tests with realistic integration tests:
 
-### Database
+| Type              | What it covers                                              | Backing store                     |
+|-------------------|-------------------------------------------------------------|-----------------------------------|
+| Unit tests        | Handlers, validators, mapping extensions, common utilities  | EF Core InMemory                  |
+| Integration tests | Full HTTP request/response cycle across every endpoint      | Real PostgreSQL via Testcontainers |
 
-**SQLite** with **Entity Framework Core**:
-
-- Auto-initialization with migrations
-- Row versioning via triggers
-- In-memory for integration tests
-- Support for concurrent operations
-
-## Testing Strategy
-
-### Test Coverage
-
-| Type | Count | Coverage | Database |
-|------|-------|----------|----------|
-| Unit Tests | 128 | Handlers, Validators, Mappings, Utilities | In-memory |
-| Integration Tests | 28 | Full HTTP cycle, All endpoints | SQLite in-memory |
-| **Total** | **156** | **~100% code coverage** | - |
-
-### Test Organization
-
-```
-test/
-├── ExampleApi.UnitTests/
-│   ├── Common/                    # Common utilities tests
-│   │   ├── Currency/              # Currency validation tests
-│   │   ├── Validation/            # Validation filter tests
-│   │   └── Pagination/            # Pagination model tests
-│   └── Features/
-│       └── Articles/              # Article feature tests
-│           ├── CreateArticle/     # Create handler + validator tests
-│           ├── GetArticle/        # Get handler tests
-│           ├── GetArticles/       # List handler tests
-│           ├── UpdateArticle/     # Update handler + validator tests
-│           ├── DeleteArticle/     # Delete handler tests
-│           ├── BatchCreateArticles/ # Batch handler + validator tests
-│           └── Shared/
-│               └── Mappings/      # Mapping extension tests
-└── ExampleApi.IntegrationTests/
-    ├── Common/                    # Test infrastructure
-    │   ├── TestWebApplicationFactory.cs
-    │   └── IntegrationTestBase.cs
-    └── Features/
-        ├── Articles/              # Article endpoint tests
-        │   ├── CreateArticle/
-        │   ├── GetArticle/
-        │   ├── GetArticles/
-        │   ├── UpdateArticle/
-        │   ├── DeleteArticle/
-        │   └── BatchCreateArticles/
-        └── Health/                # Health endpoint tests
-```
-
-### Why SQLite for Integration Tests?
-
-- Tests real SQL query translation
-- Validates EF Core migrations
-- Tests row versioning triggers
-- Detects optimistic concurrency
-- Fast execution in RAM
-- Complete isolation between tests
-
-## Development
-
-### Running Locally
+Integration tests boot the app with `WebApplicationFactory<Program>` and start a throwaway `postgres:16-alpine` container per test run, applying EF Core migrations against it — so query translation, migrations, and concurrency behaviour are all exercised against the real database engine, not a substitute.
 
 ```bash
-# Start the API
-cd src/ExampleApi
-dotnet run
+# Run everything
+dotnet test
 
-# API available at:
-# - http://localhost:5088
-# - http://localhost:5088/scalar/v1 (documentation)
-# - http://localhost:5088/openapi/v1.json (OpenAPI spec)
+# Unit tests only
+dotnet test test/ExampleApi.UnitTests
+
+# Integration tests only (requires Docker to be running)
+dotnet test test/ExampleApi.IntegrationTests
 ```
 
-### Database Migrations
+> Integration tests need a working Docker daemon because Testcontainers provisions PostgreSQL on demand.
+
+## Database migrations
 
 ```bash
-# Create a new migration
-dotnet ef migrations add MigrationName \
-  --project src/ExampleApi/ExampleApi.csproj \
-  --output-dir Infrastructure/Database/Migrations
+# Add a migration
+dotnet ef migrations add <Name> --project src/ExampleApi/ExampleApi.csproj
 
 # Apply migrations
-dotnet ef database update \
-  --project src/ExampleApi/ExampleApi.csproj
-
-# Remove last migration
-dotnet ef migrations remove \
-  --project src/ExampleApi/ExampleApi.csproj
+dotnet ef database update --project src/ExampleApi/ExampleApi.csproj
 ```
 
-### Adding a New Feature
+## Status & notes
 
-1. Create feature folder: `src/ExampleApi/Features/YourFeature/`
-2. Add handler interface: `IYourFeatureHandler.cs`
-3. Add handler implementation: `YourFeatureHandler.cs`
-4. Add endpoint: `YourFeatureEndpoint.cs`
-5. Add DTOs if needed in `Shared/` or feature folder
-6. Add validator if needed
-7. Register in DI: Update feature registration
-8. Add unit tests: `test/ExampleApi.UnitTests/Features/YourFeature/`
-9. Add integration tests: `test/ExampleApi.IntegrationTests/Features/YourFeature/`
-10. Add README.md with feature documentation
+This is a personal demonstration project and is complete for its intended scope. A few things are deliberately simplified and would be hardened before any real deployment:
 
-## Documentation
+- The `/auth/token` endpoint uses fixed demo credentials in place of a real identity provider.
+- JWT secrets and connection strings ship with placeholder development values — replace them via environment variables / secrets in any real environment.
 
-- **[Main API Documentation](src/ExampleApi/README.md)** - Detailed API guide
-- **[Articles Feature](src/ExampleApi/Features/Articles/README.md)** - Article endpoints
-- **[Health Check](src/ExampleApi/Features/Health/README.md)** - Health endpoint
-- **Individual Features** - Each feature has its own README.md
+## License
 
-## Code Quality
-
-### Standards
-
-- **C# 12** language features
-- **Nullable reference types** enabled
-- **XML documentation** for public APIs
-- **Consistent formatting** with .editorconfig
-- **SOLID principles** throughout
-
-### Best Practices
-
-- **Validation at the edge** - Validate inputs before business logic
-- **Fail fast** - Early validation and error handling
-- **Explicit interfaces** - Handler interfaces for testability
-- **Separation of concerns** - DTOs, entities, and responses separated
-- **Immutability** - Records and readonly properties where appropriate
-
-## API Documentation
-
-When running in Development mode, interactive documentation is available:
-
-- **Scalar UI**: `http://localhost:5088/scalar/v1`
-- **OpenAPI Spec**: `http://localhost:5088/openapi/v1.json`
-
-Features:
-- Try-it-out functionality
-- Request/response examples
-- Schema documentation
-- Error response examples
-
-## Purpose
-
-This is a demonstration project built for learning and showcasing modern .NET development skills. It implements real-world patterns and practices that would be used in production environments.
-
-**Key Demonstrations:**
-- Clean architecture with vertical slices
-- Comprehensive unit and integration testing
-- Modern C# features and patterns
-- RESTful API design best practices
-- Database migrations and concurrency handling
-
-## Acknowledgments
-
-This project demonstrates practical implementation of:
-
-- **Vertical Slice Architecture** - Feature-based organization
-- **REPR Pattern** - Request-Endpoint-Response structure  
-- **Test-Driven Development** - Comprehensive test coverage
-- **Domain-Driven Design** - Clean separation of concerns
-
----
-
-**Framework**: .NET 10  
-**Test Coverage**: ~100% (156 tests passing)  
-**Purpose**: Demonstration & learning project
+Released under the [MIT License](LICENSE).
