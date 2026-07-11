@@ -6,6 +6,12 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
+> **This is the reference implementation** of the [Example API multi-approach
+> showcase](../../README.md) (`dotnet-vsa`). It defines the behaviour that
+> [`contract/openapi.yaml`](../../contract/openapi.yaml) documents and that every other
+> implementation must match via the [conformance suite](../../conformance). Run
+> `./scripts/verify-impl.sh implementations/dotnet-vsa` from the repo root to prove it.
+
 ## Overview
 
 **Example API** is a demonstration back-end service for managing shop articles (products). It is intentionally small in domain scope but built the way a real production service would be: features are sliced vertically, requests are validated at the edge, errors map to RFC 7807 problem-details responses, the database uses optimistic concurrency, and every slice is covered by both unit and integration tests.
@@ -96,14 +102,17 @@ Then send the returned token as `Authorization: Bearer <token>` on protected req
 
 ### Articles
 
-| Method | Endpoint                     | Description                             | Status codes        | Auth |
-|--------|------------------------------|-----------------------------------------|---------------------|------|
-| GET    | `/api/articles`              | List articles with filters + pagination | 200                 | none |
-| GET    | `/api/articles/{id}`         | Get a single article by id              | 200, 404            | none |
-| POST   | `/api/articles`              | Create an article                       | 201, 400            | JWT  |
-| PUT    | `/api/articles/{id}`         | Update an article                       | 200, 400, 404, 409  | JWT  |
-| DELETE | `/api/articles/{id}`         | Delete an article                       | 204, 404            | JWT  |
-| POST   | `/api/articles-concurrent`   | Batch-create articles in parallel       | 201, 400            | JWT  |
+| Method | Endpoint                     | Description                             | Status codes             | Auth |
+|--------|------------------------------|-----------------------------------------|--------------------------|------|
+| GET    | `/api/articles`              | List articles with filters + pagination | 200, 401                 | JWT  |
+| GET    | `/api/articles/{id}`         | Get a single article by id              | 200, 401, 404            | JWT  |
+| POST   | `/api/articles`              | Create an article                       | 201, 400, 401            | JWT  |
+| PUT    | `/api/articles/{id}`         | Update an article                       | 200, 400, 401, 404, 409  | JWT  |
+| DELETE | `/api/articles/{id}`         | Delete an article                       | 204, 401, 404            | JWT  |
+| POST   | `/api/articles-concurrent`   | Batch-create articles in parallel       | 201, 400, 401            | JWT  |
+
+> **All `/api/articles/**` operations require a JWT** (including the `GET`s). Obtain a token
+> from `POST /auth/token` first.
 
 ### Health
 
