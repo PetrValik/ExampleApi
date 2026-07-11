@@ -42,8 +42,8 @@ The token is an HMAC-SHA256 JWT carrying a `name` claim, signed with the configu
 | `GetTokenEndpoint.cs`  | Thin HTTP surface: bind → handler → map (`200`/`401`)        |
 | `GetTokenHandler.cs`   | Credential check + JWT issuance (the only logic)             |
 | `IGetTokenHandler.cs`  | Handler contract (DI + testability)                          |
-| `TokenRequest.cs`      | Request DTO                                                  |
-| `TokenResponse.cs`     | Response DTO (`token`, `expiresAt`)                          |
+| `GetTokenRequest.cs`   | Request DTO                                                  |
+| `GetTokenResponse.cs`  | Response DTO (`token`, `expiresAt`)                          |
 
 The handler returns `null` for invalid credentials so the endpoint maps it to `401`
 without any HTTP concern leaking into the handler.

@@ -12,7 +12,7 @@ public sealed class GetTokenEndpoint : IEndpoint
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
         app.MapPost("/auth/token", (
-            TokenRequest request,
+            GetTokenRequest request,
             IGetTokenHandler handler) =>
         {
             var response = handler.Handle(request);
@@ -25,7 +25,7 @@ public sealed class GetTokenEndpoint : IEndpoint
         .WithTags("Auth")
         .WithSummary("Get JWT token")
         .WithDescription("Returns a JWT token. Demo credentials: username=admin, password=admin. Replace with a real identity provider in production.")
-        .Produces<TokenResponse>(StatusCodes.Status200OK)
+        .Produces<GetTokenResponse>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .AllowAnonymous();
     }

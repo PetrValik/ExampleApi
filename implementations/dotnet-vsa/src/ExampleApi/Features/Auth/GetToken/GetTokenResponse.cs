@@ -7,6 +7,6 @@ namespace ExampleApi.Features.Auth.GetToken;
 /// </summary>
 /// <param name="Token">The signed JWT bearer token.</param>
 /// <param name="ExpiresAt">The UTC instant at which the token expires.</param>
-public sealed record TokenResponse(
+public sealed record GetTokenResponse(
     [property: JsonPropertyName("token")] string Token,
     [property: JsonPropertyName("expiresAt")] DateTime ExpiresAt);

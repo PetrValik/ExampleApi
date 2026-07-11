@@ -22,7 +22,7 @@ public sealed class GetTokenHandler(IOptions<JwtSettings> jwtOptions) : IGetToke
     private const string DemoPassword = "admin";
 
     /// <inheritdoc />
-    public TokenResponse? Handle(TokenRequest request)
+    public GetTokenResponse? Handle(GetTokenRequest request)
     {
         // Demo credential check — swap for real user validation in production.
         if (!string.Equals(request.Username, DemoUsername, StringComparison.Ordinal)
@@ -44,6 +44,6 @@ public sealed class GetTokenHandler(IOptions<JwtSettings> jwtOptions) : IGetToke
             signingCredentials: credentials);
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-        return new TokenResponse(tokenString, expiresAt);
+        return new GetTokenResponse(tokenString, expiresAt);
     }
 }

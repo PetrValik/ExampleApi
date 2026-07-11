@@ -10,7 +10,7 @@ public interface IGetTokenHandler
     /// </summary>
     /// <param name="request">The token request carrying the credentials.</param>
     /// <returns>
-    /// A <see cref="TokenResponse"/> when the credentials are valid; otherwise <see langword="null"/>.
+    /// A <see cref="GetTokenResponse"/> when the credentials are valid; otherwise <see langword="null"/>.
     /// </returns>
-    TokenResponse? Handle(TokenRequest request);
+    GetTokenResponse? Handle(GetTokenRequest request);
 }

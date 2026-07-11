@@ -5,4 +5,4 @@ namespace ExampleApi.Features.Auth.GetToken;
 /// </summary>
 /// <param name="Username">The user name to authenticate.</param>
 /// <param name="Password">The password to authenticate.</param>
-public sealed record TokenRequest(string Username, string Password);
+public sealed record GetTokenRequest(string Username, string Password);

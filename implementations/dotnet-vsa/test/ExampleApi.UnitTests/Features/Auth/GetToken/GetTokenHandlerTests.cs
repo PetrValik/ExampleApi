@@ -34,7 +34,7 @@ public class GetTokenHandlerTests
         var before = DateTime.UtcNow;
 
         // Act
-        var response = CreateSut().Handle(new TokenRequest("admin", "admin"));
+        var response = CreateSut().Handle(new GetTokenRequest("admin", "admin"));
 
         // Assert
         response.Should().NotBeNull();
@@ -50,7 +50,7 @@ public class GetTokenHandlerTests
     public void Handle_WithValidCredentials_TokenCarriesIssuerAudienceAndName()
     {
         // Act
-        var response = CreateSut().Handle(new TokenRequest("admin", "admin"));
+        var response = CreateSut().Handle(new GetTokenRequest("admin", "admin"));
 
         // Assert
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(response!.Token);
@@ -71,7 +71,7 @@ public class GetTokenHandlerTests
     public void Handle_WithInvalidCredentials_ReturnsNull(string username, string password)
     {
         // Act
-        var response = CreateSut().Handle(new TokenRequest(username, password));
+        var response = CreateSut().Handle(new GetTokenRequest(username, password));
 
         // Assert
         response.Should().BeNull();
