@@ -30,7 +30,7 @@ public sealed class GetArticleHandler(AppDbContext dbContext) : IGetArticleHandl
     {
         var article = await dbContext.Articles
             .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.ArticleId == articleId, cancellationToken);
+            .FirstOrDefaultAsync(entity => entity.ArticleId == articleId, cancellationToken);
 
         return article is null ? throw new NotFoundException($"Article with ID {articleId} not found.") : article.ToResponse();
     }

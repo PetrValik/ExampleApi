@@ -8,7 +8,7 @@ public interface IDeleteArticleHandler
     /// <summary>
     /// Deletes an article by its identifier.
     /// </summary>
-    /// <param name="id">The article identifier.</param>
+    /// <param name="articleId">The article identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
-    Task HandleAsync(int id, CancellationToken cancellationToken);
+    Task HandleAsync(int articleId, CancellationToken cancellationToken);
 }

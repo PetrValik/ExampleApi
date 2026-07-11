@@ -11,12 +11,12 @@ public sealed class GetArticleEndpoint : IEndpoint
     /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/articles/{articleId:int}", async (
-            int articleId,
+        app.MapGet("/api/articles/{id:int}", async (
+            int id,
             IGetArticleHandler handler,
             CancellationToken cancellationToken) =>
         {
-            var response = await handler.HandleAsync(articleId, cancellationToken);
+            var response = await handler.HandleAsync(id, cancellationToken);
             return Results.Ok(response);
         })
         .WithName("GetArticle")

@@ -13,7 +13,7 @@ public sealed class UpdateArticleEndpoint : IEndpoint
     /// <inheritdoc />
     public void MapEndpoint(IEndpointRouteBuilder app)
     {
-        app.MapPut("/api/articles/{id}", async (
+        app.MapPut("/api/articles/{id:int}", async (
             int id,
             UpdateArticleRequest request,
             IValidator<UpdateArticleRequest> validator,

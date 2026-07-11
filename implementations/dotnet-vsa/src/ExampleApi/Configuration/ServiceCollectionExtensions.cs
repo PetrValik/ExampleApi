@@ -10,6 +10,7 @@ using Microsoft.OpenApi;
 using ExampleApi.Common.Endpoints;
 using ExampleApi.Features.Articles;
 using ExampleApi.Features.Articles.Shared.DTOs;
+using ExampleApi.Features.Auth;
 using ExampleApi.Infrastructure.Database;
 
 namespace ExampleApi.Configuration;
@@ -142,7 +143,7 @@ public static class ServiceCollectionExtensions
     }
 
     /// <summary>
-    /// Adds database context with SQLite provider.
+    /// Adds the database context using the PostgreSQL (Npgsql) provider.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The application configuration.</param>
@@ -166,8 +167,9 @@ public static class ServiceCollectionExtensions
     {
         services.AddValidatorsFromAssemblyContaining<Program>();
         services.AddArticlesFeature();
+        services.AddAuthFeature();
         services.AddEndpoints();
-        
+
         return services;
     }
 }

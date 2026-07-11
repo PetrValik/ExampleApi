@@ -13,14 +13,14 @@ public sealed class DeleteArticleHandler(AppDbContext dbContext) : IDeleteArticl
     /// <summary>
     /// Deletes an article by its identifier.
     /// </summary>
-    /// <param name="id">The article identifier.</param>
+    /// <param name="articleId">The article identifier.</param>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <exception cref="NotFoundException">Thrown when the article is not found.</exception>
-    public async Task HandleAsync(int id, CancellationToken cancellationToken)
+    public async Task HandleAsync(int articleId, CancellationToken cancellationToken)
     {
         var article = await dbContext.Articles
-            .FirstOrDefaultAsync(a => a.ArticleId == id, cancellationToken)
-            ?? throw new NotFoundException($"Article with ID {id} was not found.");
+            .FirstOrDefaultAsync(entity => entity.ArticleId == articleId, cancellationToken)
+            ?? throw new NotFoundException($"Article with ID {articleId} was not found.");
 
         dbContext.Articles.Remove(article);
         await dbContext.SaveChangesAsync(cancellationToken);

@@ -9,7 +9,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+		<!-- Pinned above the transitive 2.0.0 to resolve GHSA-v5pm-xwqc-g5wc (only used for dev-time OpenAPI doc generation). -->
+		<PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
 		<PackageReference Include="Scalar.AspNetCore" Version="1.2.60" />
 

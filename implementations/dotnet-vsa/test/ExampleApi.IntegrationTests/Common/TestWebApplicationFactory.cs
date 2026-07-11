@@ -16,8 +16,7 @@ public class TestWebApplicationFactory : WebApplicationFactory<Program>, IAsyncL
     /// <summary>
     /// Testcontainers-managed PostgreSQL instance used as the backing store for all integration tests.
     /// </summary>
-    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
+    private readonly PostgreSqlContainer _postgres = new PostgreSqlBuilder("postgres:16-alpine")
         .WithDatabase("exampleapi_test")
         .WithUsername("postgres")
         .WithPassword("postgres")
