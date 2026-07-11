@@ -1,0 +1,450 @@
+openapi: 3.1.0
+info:
+  title: Example API — shared contract
+  version: 1.0.0
+  description: |
+    The **single source of truth** for the Example API multi-approach showcase.
+
+    Every implementation under `implementations/` must satisfy this contract exactly —
+    same routes, same request/response shapes, same status codes — so the
+    `conformance/` suite can prove behavioural parity across approaches.
+
+    ## Auth
+    All `/api/articles/**` operations require a JWT bearer token obtained from
+    `POST /auth/token`. `GET /health` and `POST /auth/token` are anonymous.
+
+    ## Serialization note (documented reality, not a target)
+    The article payloads use `snake_case` field names (`article_id`, `row_version`)
+    while the pagination wrapper and the token response use `camelCase`
+    (`pageSize`, `expiresAt`). This inconsistency is intentional to document —
+    it reflects the current reference implementation and is pinned by the
+    conformance suite; a future implementation may not silently "fix" it without
+    a contract version bump.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Docker Compose (production profile)
+  - url: http://localhost:5088
+    description: Local dotnet run (development profile)
+
+tags:
+  - name: Health
+    description: Liveness.
+  - name: Auth
+    description: JWT token issuance.
+  - name: Articles
+    description: Article/product CRUD, listing and batch creation.
+
+security:
+  - bearerAuth: []
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      operationId: getHealth
+      summary: Health check
+      description: Returns the health status of the API.
+      security: []
+      responses:
+        '200':
+          description: The service is healthy.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /auth/token:
+    post:
+      tags: [Auth]
+      operationId: getToken
+      summary: Get JWT token
+      description: |
+        Returns a JWT bearer token for the demo user. Demo credentials:
+        `username=admin`, `password=admin`. Replace with a real identity
+        provider in production.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+            examples:
+              admin:
+                value: { username: admin, password: admin }
+      responses:
+        '200':
+          description: Credentials valid — a signed token is returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Credentials invalid or missing.
+
+  /api/articles:
+    get:
+      tags: [Articles]
+      operationId: getArticles
+      summary: List articles (filter + pagination)
+      description: |
+        Returns a paginated list of articles. Filter by `name`
+        (partial, case-insensitive) and/or `category` (exact). Default page size
+        is 10, maximum is 100 (values above are clamped, not rejected).
+      parameters:
+        - { name: name, in: query, required: false, schema: { type: string }, description: 'Partial, case-insensitive name match.' }
+        - { name: category, in: query, required: false, schema: { type: string }, description: 'Exact category match.' }
+        - { name: page, in: query, required: false, schema: { type: integer, minimum: 1, default: 1 }, description: '1-based page number.' }
+        - { name: pageSize, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 10 }, description: 'Items per page (clamped to 1..100).' }
+      responses:
+        '200':
+          description: A page of articles.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedArticleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Articles]
+      operationId: createArticle
+      summary: Create an article
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArticleRequest'
+      responses:
+        '201':
+          description: The article was created.
+          headers:
+            Location:
+              schema: { type: string }
+              description: Relative URL of the created article.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/articles/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer, format: int32 }
+        description: The article identifier.
+    get:
+      tags: [Articles]
+      operationId: getArticle
+      summary: Get an article by id
+      responses:
+        '200':
+          description: The article.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Articles]
+      operationId: updateArticle
+      summary: Update an article
+      description: |
+        Replaces all fields of an existing article. Optimistic concurrency:
+        send the `row_version` received from a previous GET; a stale value
+        yields `409 Conflict`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateArticleRequest'
+      responses:
+        '200':
+          description: The updated article.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArticleResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Articles]
+      operationId: deleteArticle
+      summary: Delete an article
+      responses:
+        '204':
+          description: The article was deleted.
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/articles-concurrent:
+    post:
+      tags: [Articles]
+      operationId: batchCreateArticles
+      summary: Create multiple articles concurrently
+      description: Creates multiple articles in parallel and returns them with generated ids.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ArticleRequest'
+      responses:
+        '201':
+          description: The articles were created.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArticleResponse'
+        '400':
+          $ref: '#/components/responses/ValidationProblem'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT obtained from POST /auth/token.
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token.
+    NotFound:
+      description: The resource was not found.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Conflict:
+      description: Optimistic-concurrency conflict — the resource was modified by another request.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    ValidationProblem:
+      description: The request failed validation.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblemDetails'
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          examples: [healthy]
+
+    TokenRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username: { type: string }
+        password: { type: string }
+
+    TokenResponse:
+      type: object
+      required: [token, expiresAt]
+      properties:
+        token:
+          type: string
+          description: Signed HMAC-SHA256 JWT.
+        expiresAt:
+          type: string
+          format: date-time
+          description: UTC expiry instant.
+
+    ArticleRequest:
+      type: object
+      required: [name, description, price]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 64
+        description:
+          type: string
+          minLength: 1
+          maxLength: 2048
+        category:
+          type: [string, 'null']
+          maxLength: 64
+        price:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 9999999999999999.99
+        currency:
+          description: |
+            ISO 4217 code. Required and validated against the supported set
+            **only when `price` > 0**; ignored/optional for free articles.
+          oneOf:
+            - $ref: '#/components/schemas/CurrencyCode'
+            - type: 'null'
+      example:
+        name: Wireless Keyboard
+        description: A compact wireless keyboard with Bluetooth connectivity.
+        category: Electronics
+        price: 49.99
+        currency: USD
+
+    UpdateArticleRequest:
+      type: object
+      required: [name, description, price, row_version]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 64 }
+        description: { type: string, minLength: 1, maxLength: 2048 }
+        category:
+          type: [string, 'null']
+          maxLength: 64
+        price:
+          type: number
+          format: double
+          minimum: 0
+          maximum: 9999999999999999.99
+        currency:
+          oneOf:
+            - $ref: '#/components/schemas/CurrencyCode'
+            - type: 'null'
+        row_version:
+          type: integer
+          format: int64
+          minimum: 1
+          description: The row version from a prior GET (optimistic concurrency token). Must be non-zero.
+
+    ArticleResponse:
+      type: object
+      required: [article_id, name, description, price, row_version]
+      properties:
+        article_id: { type: integer, format: int32 }
+        name: { type: string }
+        description: { type: string }
+        category: { type: [string, 'null'] }
+        price: { type: number, format: double }
+        currency: { type: [string, 'null'] }
+        row_version:
+          type: integer
+          format: int64
+          description: PostgreSQL xmin-backed concurrency token.
+
+    PagedArticleResponse:
+      type: object
+      required: [items, page, pageSize, totalCount, totalPages, hasPrevious, hasNext]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArticleResponse'
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalCount: { type: integer }
+        totalPages: { type: integer }
+        hasPrevious: { type: boolean }
+        hasNext: { type: boolean }
+
+    ProblemDetails:
+      type: object
+      description: RFC 7807 problem details.
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: [string, 'null'] }
+        instance: { type: [string, 'null'] }
+
+    ValidationProblemDetails:
+      type: object
+      description: RFC 7807 problem details with per-field validation errors.
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+
+    CurrencyCode:
+      type: string
+      description: Supported ISO 4217 alphabetic currency codes.
+      enum:
+        - USD
+        - EUR
+        - JPY
+        - GBP
+        - CHF
+        - CAD
+        - AUD
+        - NZD
+        - SEK
+        - NOK
+        - DKK
+        - CZK
+        - PLN
+        - HUF
+        - RON
+        - BGN
+        - ISK
+        - CNY
+        - HKD
+        - SGD
+        - KRW
+        - INR
+        - THB
+        - MYR
+        - IDR
+        - PHP
+        - TWD
+        - VND
+        - BRL
+        - MXN
+        - ARS
+        - CLP
+        - COP
+        - PEN
+        - AED
+        - SAR
+        - ILS
+        - QAR
+        - KWD
+        - BHD
+        - ZAR
+        - TRY
+        - RUB
+        - UAH
+        - EGP
+        - NGN
+        - KES
+        - MAD
+        - PKR

@@ -1,0 +1,7 @@
+{
+  "name": "",
+  "description": "Empty name and a positive price without a currency — must fail validation.",
+  "category": "Electronics",
+  "price": 49.99,
+  "currency": null
+}
