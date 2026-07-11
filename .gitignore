@@ -179,3 +179,29 @@ healthchecksdb
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# ---------------------------------------------------------------------------
+# Multi-approach showcase additions
+# ---------------------------------------------------------------------------
+
+# SQLite dev databases (never commit; this repo uses PostgreSQL)
+*.db
+*.db-shm
+*.db-wal
+
+# Python (conformance suite, future python-* implementations)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+
+# Node / TypeScript (future ts-* implementations, tooling)
+node_modules/
+
+# Benchmark output
+bench/results/
+*.k6-summary.json
