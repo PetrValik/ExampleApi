@@ -1,5 +1,66 @@
 {
-  "ranAt": "2026-07-12T22:29:35.341Z",
+  "ranAt": "2026-07-12T22:45:24.793Z",
   "runner": "github-actions ubuntu-latest (2 vCPU) — indicative, relative comparison only",
-  "results": {}
+  "results": {
+    "dotnet-clean": {
+      "rps": 158.9,
+      "p95": 5.5,
+      "p99": 8.2,
+      "imageMb": 228
+    },
+    "dotnet-mediatr": {
+      "rps": 159.3,
+      "p95": 4.9,
+      "p99": 6.7,
+      "imageMb": 228
+    },
+    "dotnet-minimal": {
+      "rps": 159.2,
+      "p95": 5.1,
+      "p99": 7.3,
+      "imageMb": 227
+    },
+    "dotnet-mvc": {
+      "rps": 158.4,
+      "p95": 6.1,
+      "p99": 8.4,
+      "imageMb": 228
+    },
+    "dotnet-vsa": {
+      "rps": 159.4,
+      "p95": 5,
+      "p99": 6.9,
+      "imageMb": 231
+    },
+    "python-django": {
+      "rps": 133.8,
+      "p95": 31.9,
+      "p99": 40.8,
+      "imageMb": 168
+    },
+    "python-fastapi": {
+      "rps": 152.3,
+      "p95": 8.5,
+      "p99": 165.4,
+      "imageMb": 187
+    },
+    "python-flask": {
+      "rps": 156.7,
+      "p95": 6.8,
+      "p99": 8.4,
+      "imageMb": 164
+    },
+    "ts-express": {
+      "rps": 155.8,
+      "p95": 8.8,
+      "p99": 10.7,
+      "imageMb": 314
+    },
+    "ts-nestjs": {
+      "rps": 153.7,
+      "p95": 12.1,
+      "p99": 17.3,
+      "imageMb": 200
+    }
+  }
 }
