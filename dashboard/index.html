@@ -184,16 +184,7 @@
         <div class="chart-head"><h2 style="margin:0">Code size by runtime <span style="color:var(--muted);text-transform:none;letter-spacing:0">· lines, context</span></h2></div>
         <div class="bars" id="axisB"></div>
       </div>
-      <div class="card perf-pending">
-        <span class="pending-tag"><span class="dot"></span>Benchmarks pending</span>
-        <div class="perf-metrics">
-          <div class="perf-metric"><div class="pm-k">Throughput</div><div class="pm-v">— rps</div></div>
-          <div class="perf-metric"><div class="pm-k">p99 latency</div><div class="pm-v">— ms</div></div>
-          <div class="perf-metric"><div class="pm-k">Memory</div><div class="pm-v">— mb</div></div>
-          <div class="perf-metric"><div class="pm-k">Image size</div><div class="pm-v">— mb</div></div>
-        </div>
-        <p class="section-note" style="margin:0">A shared k6 profile hits every implementation identically against the same PostgreSQL — <code style="font-family:var(--mono);color:var(--ink-2)">k6 run bench/k6/articles.js</code>.</p>
-      </div>
+      <div class="card perf-pending" id="perfPanel"></div>
     </div>
   </section>
 
@@ -201,7 +192,7 @@
     <h2>All implementations</h2>
     <p class="section-note">Source metrics only — tests, generated migrations and build output excluded.</p>
     <div class="table-scroll"><table id="dataTable"><thead><tr>
-      <th>Implementation</th><th>Runtime</th><th>Axis</th><th>Files</th><th>Lines</th><th>Non-blank</th><th>Concurrency</th><th>Build</th>
+      <th>Implementation</th><th>Runtime</th><th>Axis</th><th>Files</th><th>Lines</th><th>Non-blank</th><th>req/s</th><th>p99</th><th>Build</th>
     </tr></thead><tbody></tbody></table></div>
   </section>
 
@@ -230,6 +221,7 @@
   let DATA = FALLBACK.implementations;
   let selected = "dotnet-vsa";
   let metricA = "files";
+  let proxyAvailable = false;
 
   document.getElementById("themeBtn").addEventListener("click", () => {
     const cur = root.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
@@ -260,13 +252,16 @@
   const detail = document.getElementById("detail");
   function renderDetail() {
     const d = DATA.find(x => x.name === selected); const c = famColor(d.family);
+    const perfBits = (d.perf && d.perf.rps != null) ? `
+        <div class="stat"><div class="v">${Math.round(d.perf.rps).toLocaleString()}</div><div class="k">req/s (CI)</div></div>
+        <div class="stat"><div class="v" style="font-size:18px">${d.perf.p99 != null ? Math.round(d.perf.p99) + " ms" : "—"}</div><div class="k">p99 latency</div></div>` : "";
     detail.innerHTML = `
       <div class="detail-head">
         <div><div class="detail-name">${d.name}</div><p class="detail-stack">${d.stack}</p></div>
         <div class="badges">
           <span class="badge" style="border-color:color-mix(in srgb, ${c} 45%, var(--border))"><span class="dot" style="background:${c}"></span>${d.family} · axis ${d.axis}</span>
           <span class="badge build"><span class="dot"></span>build passes</span>
-          <span class="badge">conforms · by construction</span>
+          <span class="badge build"><span class="dot"></span>conforms · CI</span>
         </div>
       </div>
       <div class="detail-grid">
@@ -275,12 +270,14 @@
         <div class="stat"><div class="v">${d.metrics.nonblank.toLocaleString()}</div><div class="k">non-blank</div></div>
         <div class="stat"><div class="v" style="font-size:15px;line-height:1.4">${d.concurrency}</div><div class="k wide">row_version strategy</div></div>
         <div class="stat"><div class="v" style="font-size:15px">:${d.port}</div><div class="k wide">host port</div></div>
+        ${perfBits}
       </div>
-      <div class="explorer-actions">
+      ${proxyAvailable ? `<div class="explorer-actions">
         <button class="btn" id="openSwg" type="button">Open live API explorer ↗</button>
-        <span class="hint">calls ${d.name} through the shared contract (requires the stack running)</span>
-      </div>`;
-    document.getElementById("openSwg").addEventListener("click", () => { const w = document.getElementById("swaggerWrap"); w.classList.add("open"); openSwagger(); w.scrollIntoView({behavior:"smooth", block:"nearest"}); });
+        <span class="hint">calls ${d.name} live through the shared contract</span>
+      </div>` : `<div class="explorer-actions"><span class="hint">↳ The live API explorer runs in the self-hosted stack (<code>docker compose -f docker-compose.all.yml up</code>). This page shows the comparison results.</span></div>`}`;
+    const swg = document.getElementById("openSwg");
+    if (swg) swg.addEventListener("click", () => { const w = document.getElementById("swaggerWrap"); w.classList.add("open"); openSwagger(); w.scrollIntoView({behavior:"smooth", block:"nearest"}); });
   }
 
   // Swagger UI, pointed at the selected implementation via the same-origin reverse proxy /impl/<name>/.
@@ -304,14 +301,15 @@
   }
   document.getElementById("swgClose").addEventListener("click", () => document.getElementById("swaggerWrap").classList.remove("open"));
 
-  function renderBars(elId, rows, metric, colorFn) {
+  function renderBars(elId, rows, valueOf, colorFn, fmt) {
+    fmt = fmt || ((v) => v.toLocaleString());
     const el = document.getElementById(elId);
-    const max = Math.max(...rows.map(r => r.metrics[metric]));
+    const max = Math.max(...rows.map(valueOf));
     el.innerHTML = rows.map(r => {
-      const v = r.metrics[metric]; const pct = Math.max((v/max)*72, 1.2);
-      return `<div class="bar-row ${r.reference?'is-ref':''}" title="${r.name}: ${v.toLocaleString()} ${METRIC_LABEL[metric]}">
+      const v = valueOf(r); const pct = Math.max((v/max)*72, 1.2);
+      return `<div class="bar-row ${r.reference?'is-ref':''}" title="${r.name}: ${fmt(v)}">
         <div class="bar-label">${r.name}</div>
-        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(r)}"></div><span class="bar-val">${v.toLocaleString()}</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(r)}"></div><span class="bar-val">${fmt(v)}</span></div>
       </div>`;
     }).join("");
   }
@@ -320,27 +318,70 @@
   function renderAxisA() {
     const rows = DATA.filter(d => d.axis==="A").slice().sort((a,b)=>a.metrics[metricA]-b.metrics[metricA]);
     const accent = getComputedStyle(root).getPropertyValue("--accent").trim();
-    renderBars("axisA", rows, metricA, () => accent);
+    renderBars("axisA", rows, (r)=>r.metrics[metricA], () => accent);
   }
   function renderAxisB() {
     const rows = DATA.filter(d => d.axis==="B").concat(DATA.find(d=>d.reference)).slice().sort((a,b)=>a.metrics.lines-b.metrics.lines);
-    renderBars("axisB", rows, "lines", (r)=>famColor(r.family));
+    renderBars("axisB", rows, (r)=>r.metrics.lines, (r)=>famColor(r.family));
+  }
+  function hasPerf() { return DATA.some(d => d.perf && d.perf.rps != null); }
+  function renderPerf() {
+    const panel = document.getElementById("perfPanel");
+    if (!hasPerf()) {
+      panel.innerHTML = `
+        <span class="pending-tag"><span class="dot"></span>Benchmarks pending</span>
+        <div class="perf-metrics">
+          <div class="perf-metric"><div class="pm-k">Throughput</div><div class="pm-v">— rps</div></div>
+          <div class="perf-metric"><div class="pm-k">p99 latency</div><div class="pm-v">— ms</div></div>
+          <div class="perf-metric"><div class="pm-k">Memory</div><div class="pm-v">— mb</div></div>
+          <div class="perf-metric"><div class="pm-k">Image size</div><div class="pm-v">— mb</div></div>
+        </div>
+        <p class="section-note" style="margin:0">A shared k6 profile hits every implementation identically against the same PostgreSQL. Runs in CI; results appear here once measured.</p>`;
+      return;
+    }
+    const rows = DATA.filter(d => d.perf && d.perf.rps != null).slice().sort((a,b)=> b.perf.rps - a.perf.rps);
+    panel.innerHTML = `
+      <div class="chart-head"><h2 style="margin:0">Throughput <span style="color:var(--muted);text-transform:none;letter-spacing:0">· req/s, higher is better</span></h2></div>
+      <div class="bars" id="perfBars"></div>
+      <p class="section-note" style="margin:12px 0 0">Indicative — measured on a shared 2-core CI runner, so read it as a relative comparison, not absolute capacity. p95/p99 in the table.</p>`;
+    renderBars("perfBars", rows, (r)=>r.perf.rps, (r)=>famColor(r.family), (v)=>Math.round(v).toLocaleString());
   }
   function renderTable() {
-    document.querySelector("#dataTable tbody").innerHTML = DATA.slice().sort((a,b)=>a.metrics.files-b.metrics.files).map(d => `
-      <tr><td class="nm">${d.name}${d.reference?' <span style="color:var(--accent);font-size:11px">ref</span>':''}</td>
+    document.querySelector("#dataTable tbody").innerHTML = DATA.slice().sort((a,b)=>a.metrics.files-b.metrics.files).map(d => {
+      const rps = d.perf && d.perf.rps != null ? Math.round(d.perf.rps).toLocaleString() : "—";
+      const p99 = d.perf && d.perf.p99 != null ? Math.round(d.perf.p99) + " ms" : "—";
+      return `<tr><td class="nm">${d.name}${d.reference?' <span style="color:var(--accent);font-size:11px">ref</span>':''}</td>
       <td style="text-align:left"><span class="fam-cell"><span class="dot" style="background:${famColor(d.family)}"></span>${d.family}</span></td>
       <td>${d.axis}</td><td>${d.metrics.files}</td><td>${d.metrics.lines.toLocaleString()}</td><td>${d.metrics.nonblank.toLocaleString()}</td>
-      <td style="text-align:left;font-family:var(--mono);font-size:12px;color:var(--muted)">${d.concurrency}</td>
-      <td style="color:var(--good-ink)">✓ pass</td></tr>`).join("");
+      <td>${rps}</td><td>${p99}</td>
+      <td style="color:var(--good-ink)">✓ pass</td></tr>`;
+    }).join("");
   }
-  document.getElementById("foot").innerHTML = "Code metrics computed live from source · perf pending Phase 2 · contract v1.0.0<br>Behavioural parity is by-construction until the conformance suite runs on Docker. Build status verified: 10/10 compile.";
+  document.getElementById("foot").innerHTML = "Code metrics computed live from source · contract v1.0.0<br>Conformance: all 10 implementations pass the black-box suite in CI. Perf (when shown) is measured on a CI runner — indicative, relative.";
 
-  function renderAll() { renderKpis(); renderFamilies(); renderDetail(); renderAxisA(); renderAxisB(); renderTable(); }
+  function renderAll() { renderKpis(); renderFamilies(); renderDetail(); renderAxisA(); renderAxisB(); renderPerf(); renderTable(); }
+
+  // Show the live API explorer only when a real backend is reachable through the reverse proxy
+  // (i.e. the self-hosted stack). On static hosting like GitHub Pages there is no backend, so the
+  // explorer is hidden and the page presents the comparison results only.
+  async function probeBackend() {
+    const ref = (DATA.find(d => d.reference) || DATA[0] || {}).name || "dotnet-vsa";
+    try {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 2500);
+      const r = await fetch("/impl/" + ref + "/health", { signal: ctrl.signal });
+      clearTimeout(timer);
+      proxyAvailable = r.ok;
+    } catch { proxyAvailable = false; }
+  }
 
   // Prefer the generated data.json (kept in sync by scripts/gen-dashboard-data.mjs); fall back to embedded.
-  fetch("data.json").then(r => r.ok ? r.json() : Promise.reject()).then(j => { if (j && j.implementations) DATA = j.implementations; })
-    .catch(() => {}).finally(renderAll);
+  async function boot() {
+    try { const r = await fetch("data.json"); if (r.ok) { const j = await r.json(); if (j && j.implementations) DATA = j.implementations; } } catch { /* use fallback */ }
+    await probeBackend();
+    renderAll();
+  }
+  boot();
 </script>
 </body>
 </html>

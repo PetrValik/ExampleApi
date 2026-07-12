@@ -1,6 +1,7 @@
 {
-  "generatedNote": "Code metrics computed live by scripts/gen-dashboard-data.mjs; perf pending Phase 2 benchmarks.",
+  "generatedNote": "Code metrics computed live by scripts/gen-dashboard-data.mjs.",
   "contractVersion": "1.0.0",
+  "benchmark": null,
   "implementations": [
     {
       "name": "dotnet-vsa",
@@ -23,7 +24,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -46,7 +47,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -69,7 +70,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -92,7 +93,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -115,7 +116,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -127,8 +128,8 @@
       "concurrency": "integer version column",
       "metrics": {
         "files": 14,
-        "lines": 755,
-        "nonblank": 582
+        "lines": 758,
+        "nonblank": 585
       },
       "perf": {
         "rps": null,
@@ -138,7 +139,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -161,7 +162,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -184,7 +185,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -207,7 +208,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     },
     {
@@ -230,7 +231,7 @@
         "ramMb": null,
         "imageMb": null
       },
-      "conformance": "by-construction",
+      "conformance": "pass",
       "build": "pass"
     }
   ]

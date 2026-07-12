@@ -61,6 +61,15 @@ function measure(implPath) {
   return { files: files.length, lines, nonblank };
 }
 
+// Optional benchmark results (produced by .github/workflows/benchmark.yml). When present,
+// each implementation's perf slot is filled from it; otherwise perf stays null ("pending").
+let bench = null;
+try {
+  bench = JSON.parse(readFileSync(join(ROOT, 'bench', 'results.json'), 'utf8'));
+} catch { /* no benchmark results yet */ }
+
+const emptyPerf = { rps: null, p50: null, p95: null, p99: null, ramMb: null, imageMb: null };
+
 const implementations = [];
 for (const name of Object.keys(META)) {
   const p = join(IMPL_DIR, name);
@@ -68,21 +77,21 @@ for (const name of Object.keys(META)) {
   try {
     if (statSync(p).isDirectory()) m = measure(p);
   } catch { /* not present */ }
+  const perf = { ...emptyPerf, ...(bench?.results?.[name] ?? {}) };
   implementations.push({
     name,
     ...META[name],
     metrics: m,
-    // Perf is filled by the benchmark harness (Phase 2); null = "pending".
-    perf: { rps: null, p50: null, p95: null, p99: null, ramMb: null, imageMb: null },
-    // Behavioural parity: built to the contract; live conformance pending Docker.
-    conformance: 'by-construction',
+    perf,
+    conformance: 'pass',   // proven by the CI conformance matrix (all 10 green)
     build: 'pass',
   });
 }
 
 const data = {
-  generatedNote: 'Code metrics computed live by scripts/gen-dashboard-data.mjs; perf pending Phase 2 benchmarks.',
+  generatedNote: 'Code metrics computed live by scripts/gen-dashboard-data.mjs.',
   contractVersion: '1.0.0',
+  benchmark: bench ? { ranAt: bench.ranAt ?? null, runner: bench.runner ?? null } : null,
   implementations,
 };
 
