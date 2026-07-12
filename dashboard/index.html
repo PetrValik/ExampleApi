@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Example API — 10 approaches, one contract</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>🔬</text></svg>">
+<link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css">
+<style>
+  :root {
+    --plane: #f6f7f9; --surface: #ffffff; --surface-2: #fbfcfd;
+    --ink: #0c0e12; --ink-2: #474b54; --muted: #868a92;
+    --grid: #e6e8ec; --baseline: #c6c9cf; --border: rgba(12,14,18,0.10);
+    --accent: #2a78d6; --accent-soft: rgba(42,120,214,0.12);
+    --net: #2a78d6; --python: #1baf7a; --node: #c98500;
+    --good: #0ca30c; --good-ink: #0a7d0a; --track: #eceef1;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --r: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --plane: #0b0c0e; --surface: #17181b; --surface-2: #1c1d21;
+      --ink: #f3f4f6; --ink-2: #b8bbc2; --muted: #82858c;
+      --grid: #26282c; --baseline: #3a3d42; --border: rgba(255,255,255,0.11);
+      --accent: #3987e5; --accent-soft: rgba(57,135,229,0.18);
+      --net: #3987e5; --python: #23b483; --node: #d99f2b;
+      --good: #14b814; --good-ink: #38d038; --track: #23252a;
+    }
+  }
+  :root[data-theme="light"] {
+    --plane: #f6f7f9; --surface: #ffffff; --surface-2: #fbfcfd;
+    --ink: #0c0e12; --ink-2: #474b54; --muted: #868a92;
+    --grid: #e6e8ec; --baseline: #c6c9cf; --border: rgba(12,14,18,0.10);
+    --accent: #2a78d6; --accent-soft: rgba(42,120,214,0.12);
+    --net: #2a78d6; --python: #1baf7a; --node: #c98500;
+    --good: #0ca30c; --good-ink: #0a7d0a; --track: #eceef1;
+  }
+  :root[data-theme="dark"] {
+    --plane: #0b0c0e; --surface: #17181b; --surface-2: #1c1d21;
+    --ink: #f3f4f6; --ink-2: #b8bbc2; --muted: #82858c;
+    --grid: #26282c; --baseline: #3a3d42; --border: rgba(255,255,255,0.11);
+    --accent: #3987e5; --accent-soft: rgba(57,135,229,0.18);
+    --net: #3987e5; --python: #23b483; --node: #d99f2b;
+    --good: #14b814; --good-ink: #38d038; --track: #23252a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--plane); color: var(--ink); font-family: var(--sans); line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: clamp(20px,4vw,44px) clamp(16px,4vw,32px) 72px; }
+  .eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+  h1 { font-size: clamp(28px,5vw,44px); line-height: 1.05; margin: 0 0 14px; letter-spacing: -0.02em; text-wrap: balance; font-weight: 680; }
+  .lede { font-size: clamp(15px,2vw,18px); color: var(--ink-2); max-width: 60ch; margin: 0; }
+  h2 { font-size: 13px; font-family: var(--mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-2); margin: 0 0 4px; }
+  .section-note { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; max-width: 62ch; }
+  header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+  .theme-toggle { flex: none; font-family: var(--mono); font-size: 12px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; letter-spacing: 0.04em; }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  .theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  section { margin-top: 44px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 12px; margin-top: 28px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 16px 18px; }
+  .kpi .n { font-size: 30px; font-weight: 660; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+  .kpi .n small { font-size: 15px; color: var(--muted); font-weight: 500; }
+  .kpi .l { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 8px; }
+  .families { display: flex; flex-direction: column; gap: 14px; }
+  .fam-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .fam-label { font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); width: 62px; flex: none; display: flex; align-items: center; gap: 7px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  .chip { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 12px; cursor: pointer; transition: border-color .12s, background .12s, color .12s; display: inline-flex; align-items: center; gap: 7px; }
+  .chip:hover { border-color: var(--accent); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  .chip .ref { font-size: 10px; color: var(--accent); letter-spacing: 0.06em; }
+  .detail { margin-top: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px 24px; }
+  .detail-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .detail-name { font-family: var(--mono); font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+  .detail-stack { color: var(--ink-2); font-size: 15px; margin: 6px 0 0; }
+  .badges { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .badge { font-family: var(--mono); font-size: 11px; letter-spacing: 0.04em; padding: 4px 9px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .badge.build { color: var(--good-ink); border-color: color-mix(in srgb, var(--good) 40%, var(--border)); }
+  .badge.build .dot { background: var(--good); }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 18px 24px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+  .stat .v { font-size: 22px; font-weight: 640; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+  .stat .k { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin-top: 5px; }
+  .stat .k.wide { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--ink-2); }
+  .explorer-actions { margin-top: 18px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn { font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.03em; padding: 9px 14px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent); color: #fff; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--accent); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hint { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+  #swaggerWrap { margin-top: 18px; border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); display: none; }
+  #swaggerWrap.open { display: block; }
+  #swaggerWrap .swg-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  #swaggerWrap .swg-close { cursor: pointer; border: none; background: transparent; color: var(--muted); font-family: var(--mono); font-size: 13px; }
+  #swagger { padding: 4px 8px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px 24px 24px; }
+  .chart-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+  .toggle-group { display: inline-flex; background: var(--track); border-radius: 8px; padding: 3px; gap: 2px; }
+  .toggle-group button { font-family: var(--mono); font-size: 11.5px; letter-spacing: 0.04em; border: none; background: transparent; color: var(--ink-2); padding: 6px 11px; border-radius: 6px; cursor: pointer; }
+  .toggle-group button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .toggle-group button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .bars { display: flex; flex-direction: column; gap: 3px; margin-top: 8px; }
+  .bar-row { display: grid; grid-template-columns: 132px 1fr; align-items: center; gap: 12px; padding: 5px 0; border-radius: 6px; }
+  @media (max-width: 520px) { .bar-row { grid-template-columns: 104px 1fr; gap: 8px; } .bar-label { font-size: 11.5px; } }
+  .bar-row:hover { background: var(--surface-2); }
+  .bar-label { font-family: var(--mono); font-size: 12.5px; color: var(--ink-2); text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-row.is-ref .bar-label { color: var(--ink); font-weight: 600; }
+  .bar-track { display: flex; align-items: center; gap: 8px; height: 22px; }
+  .bar-fill { height: 22px; border-radius: 3px 5px 5px 3px; min-width: 3px; flex: none; transition: width .5s cubic-bezier(.22,.61,.36,1); }
+  .bar-val { font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; flex: none; }
+  @media (prefers-reduced-motion: reduce) { .bar-fill { transition: none; } }
+  .axisB { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+  @media (max-width: 720px) { .axisB { grid-template-columns: 1fr; } }
+  .perf-pending { display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+  .perf-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .perf-metric { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .perf-metric .pm-k { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .perf-metric .pm-v { font-size: 16px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .pending-tag { display: inline-flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  .pending-tag .dot { background: var(--node); }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--r); }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  th, td { text-align: right; padding: 10px 14px; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  tbody td { border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; color: var(--ink-2); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody .nm { font-family: var(--mono); color: var(--ink); }
+  tbody tr:hover td { background: var(--surface-2); }
+  .fam-cell { display: inline-flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 12px; color: var(--ink-2); }
+  footer { margin-top: 40px; color: var(--muted); font-size: 12.5px; font-family: var(--mono); line-height: 1.7; }
+  a { color: var(--accent); }
+  /* keep Swagger UI readable in dark mode */
+  @media (prefers-color-scheme: dark) { .swagger-ui, .swagger-ui .info .title, .swagger-ui .opblock-tag, .swagger-ui table thead tr td, .swagger-ui table thead tr th, .swagger-ui .opblock .opblock-summary-operation-id, .swagger-ui .opblock .opblock-summary-path, .swagger-ui .parameter__name, .swagger-ui .response-col_status { color: #d7d9de; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">Multi-approach showcase · one contract</p>
+      <h1>The same API, ten ways.</h1>
+      <p class="lede">One article-CRUD API — identical HTTP behaviour behind one OpenAPI contract and one black-box conformance suite — built in ten architectures and runtimes. Pick an implementation to inspect it and call it live; read the charts to see what each approach costs.</p>
+    </div>
+    <button class="theme-toggle" id="themeBtn" type="button" aria-label="Toggle colour theme">◐ theme</button>
+  </header>
+
+  <div class="kpis" id="kpis"></div>
+
+  <section>
+    <h2>Choose an implementation</h2>
+    <p class="section-note">Grouped by runtime. Each builds/typechecks clean and ships a Dockerfile + compose. When the stack is deployed, “Open live API explorer” calls the selected implementation through the shared contract.</p>
+    <div class="families" id="families"></div>
+    <div class="detail" id="detail" aria-live="polite"></div>
+    <div id="swaggerWrap">
+      <div class="swg-head"><span id="swgTitle">API explorer</span><button class="swg-close" id="swgClose" type="button">✕ close</button></div>
+      <div id="swagger"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <div class="chart-head">
+        <div>
+          <h2>Axis A — code ceremony (.NET, same runtime)</h2>
+          <p class="section-note" style="margin-bottom:0">Five .NET styles, identical behaviour and near-identical throughput. What differs is how much code each needs.</p>
+        </div>
+        <div class="toggle-group" id="metricToggle" role="group" aria-label="Metric">
+          <button type="button" data-metric="files" aria-pressed="true">Files</button>
+          <button type="button" data-metric="lines" aria-pressed="false">Lines</button>
+          <button type="button" data-metric="nonblank" aria-pressed="false">Non-blank</button>
+        </div>
+      </div>
+      <div class="bars" id="axisA"></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Axis B — performance by runtime</h2>
+    <p class="section-note">Different runtimes, so throughput and resource use are the point. Code size is context only — lines across languages don't compare directly. Real numbers land when the benchmark harness runs.</p>
+    <div class="axisB">
+      <div class="card">
+        <div class="chart-head"><h2 style="margin:0">Code size by runtime <span style="color:var(--muted);text-transform:none;letter-spacing:0">· lines, context</span></h2></div>
+        <div class="bars" id="axisB"></div>
+      </div>
+      <div class="card perf-pending">
+        <span class="pending-tag"><span class="dot"></span>Benchmarks pending</span>
+        <div class="perf-metrics">
+          <div class="perf-metric"><div class="pm-k">Throughput</div><div class="pm-v">— rps</div></div>
+          <div class="perf-metric"><div class="pm-k">p99 latency</div><div class="pm-v">— ms</div></div>
+          <div class="perf-metric"><div class="pm-k">Memory</div><div class="pm-v">— mb</div></div>
+          <div class="perf-metric"><div class="pm-k">Image size</div><div class="pm-v">— mb</div></div>
+        </div>
+        <p class="section-note" style="margin:0">A shared k6 profile hits every implementation identically against the same PostgreSQL — <code style="font-family:var(--mono);color:var(--ink-2)">k6 run bench/k6/articles.js</code>.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>All implementations</h2>
+    <p class="section-note">Source metrics only — tests, generated migrations and build output excluded.</p>
+    <div class="table-scroll"><table id="dataTable"><thead><tr>
+      <th>Implementation</th><th>Runtime</th><th>Axis</th><th>Files</th><th>Lines</th><th>Non-blank</th><th>Concurrency</th><th>Build</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>
+  // Fallback data (used if data.json can't be fetched, e.g. opened via file://).
+  const FALLBACK = { implementations: [
+    { name:"dotnet-vsa", family:".NET", axis:"A", stack:"Vertical Slice — hand-rolled handlers + exceptions", reference:true, port:8081, concurrency:"Postgres xmin", metrics:{files:48,lines:1823,nonblank:1596} },
+    { name:"dotnet-minimal", family:".NET", axis:"A", stack:"Minimal API — one Program.cs, no abstractions", port:8082, concurrency:"Postgres xmin", metrics:{files:1,lines:382,nonblank:327} },
+    { name:"dotnet-mvc", family:".NET", axis:"A", stack:"Controllers → Services → Repositories (layered)", port:8083, concurrency:"Postgres xmin", metrics:{files:29,lines:1097,nonblank:917} },
+    { name:"dotnet-clean", family:".NET", axis:"A", stack:"Clean Architecture — 4 projects, dependency rule inward", port:8084, concurrency:"integer version", metrics:{files:40,lines:1401,nonblank:1185} },
+    { name:"dotnet-mediatr", family:".NET", axis:"A", stack:"Vertical Slice + MediatR + Result<T>", port:8085, concurrency:"Postgres xmin", metrics:{files:46,lines:1550,nonblank:1312} },
+    { name:"python-fastapi", family:"Python", axis:"B", stack:"FastAPI + SQLAlchemy 2 + Pydantic v2 (async)", port:8086, concurrency:"integer version", metrics:{files:14,lines:755,nonblank:582} },
+    { name:"python-django", family:"Python", axis:"B", stack:"Django + DRF + SimpleJWT", port:8087, concurrency:"integer version", metrics:{files:16,lines:721,nonblank:566} },
+    { name:"python-flask", family:"Python", axis:"B", stack:"Flask + SQLAlchemy + flask-jwt-extended (sync WSGI)", port:8088, concurrency:"integer version", metrics:{files:11,lines:611,nonblank:473} },
+    { name:"ts-express", family:"Node", axis:"B", stack:"Express + Prisma + zod (TypeScript)", port:8089, concurrency:"integer version", metrics:{files:14,lines:747,nonblank:646} },
+    { name:"ts-nestjs", family:"Node", axis:"B", stack:"NestJS + TypeORM + class-validator", port:8090, concurrency:"integer version", metrics:{files:21,lines:850,nonblank:754} },
+  ]};
+  const FAM_VAR = { ".NET":"--net", "Python":"--python", "Node":"--node" };
+  const METRIC_LABEL = { files:"files", lines:"lines", nonblank:"non-blank lines" };
+  const famColor = (f) => getComputedStyle(document.documentElement).getPropertyValue(FAM_VAR[f]).trim();
+  const root = document.documentElement;
+  let DATA = FALLBACK.implementations;
+  let selected = "dotnet-vsa";
+  let metricA = "files";
+
+  document.getElementById("themeBtn").addEventListener("click", () => {
+    const cur = root.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    root.setAttribute("data-theme", cur === "dark" ? "light" : "dark");
+    renderAll();
+  });
+
+  function renderKpis() {
+    const spread = Math.round(Math.max(...DATA.map(d=>d.metrics.files)) / Math.min(...DATA.map(d=>d.metrics.files)));
+    document.getElementById("kpis").innerHTML = [
+      [DATA.length, "implementations"], [1, "shared contract"], [29, "conformance tests"],
+      [3, "runtimes"], [spread+"<small>×</small>", "file-count spread"],
+    ].map(([n,l]) => `<div class="kpi"><div class="n">${n}</div><div class="l">${l}</div></div>`).join("");
+  }
+
+  const families = document.getElementById("families");
+  function renderFamilies() {
+    families.innerHTML = [".NET","Python","Node"].map(fam => {
+      const chips = DATA.filter(d => d.family === fam).map(d => `
+        <button class="chip" type="button" data-name="${d.name}" aria-pressed="${d.name===selected}">
+          ${d.name}${d.reference?'<span class="ref">ref</span>':''}</button>`).join("");
+      return `<div class="fam-row"><span class="fam-label"><span class="dot" style="background:var(${FAM_VAR[fam]})"></span>${fam}</span><div class="chips">${chips}</div></div>`;
+    }).join("");
+    families.querySelectorAll(".chip").forEach(btn =>
+      btn.addEventListener("click", () => { selected = btn.dataset.name; renderFamilies(); renderDetail(); if (document.getElementById("swaggerWrap").classList.contains("open")) openSwagger(); }));
+  }
+
+  const detail = document.getElementById("detail");
+  function renderDetail() {
+    const d = DATA.find(x => x.name === selected); const c = famColor(d.family);
+    detail.innerHTML = `
+      <div class="detail-head">
+        <div><div class="detail-name">${d.name}</div><p class="detail-stack">${d.stack}</p></div>
+        <div class="badges">
+          <span class="badge" style="border-color:color-mix(in srgb, ${c} 45%, var(--border))"><span class="dot" style="background:${c}"></span>${d.family} · axis ${d.axis}</span>
+          <span class="badge build"><span class="dot"></span>build passes</span>
+          <span class="badge">conforms · by construction</span>
+        </div>
+      </div>
+      <div class="detail-grid">
+        <div class="stat"><div class="v">${d.metrics.files}</div><div class="k">source files</div></div>
+        <div class="stat"><div class="v">${d.metrics.lines.toLocaleString()}</div><div class="k">lines</div></div>
+        <div class="stat"><div class="v">${d.metrics.nonblank.toLocaleString()}</div><div class="k">non-blank</div></div>
+        <div class="stat"><div class="v" style="font-size:15px;line-height:1.4">${d.concurrency}</div><div class="k wide">row_version strategy</div></div>
+        <div class="stat"><div class="v" style="font-size:15px">:${d.port}</div><div class="k wide">host port</div></div>
+      </div>
+      <div class="explorer-actions">
+        <button class="btn" id="openSwg" type="button">Open live API explorer ↗</button>
+        <span class="hint">calls ${d.name} through the shared contract (requires the stack running)</span>
+      </div>`;
+    document.getElementById("openSwg").addEventListener("click", () => { const w = document.getElementById("swaggerWrap"); w.classList.add("open"); openSwagger(); w.scrollIntoView({behavior:"smooth", block:"nearest"}); });
+  }
+
+  // Swagger UI, pointed at the selected implementation via the same-origin reverse proxy /impl/<name>/.
+  function openSwagger() {
+    document.getElementById("swgTitle").textContent = `API explorer · ${selected}`;
+    if (typeof SwaggerUIBundle === "undefined") {
+      document.getElementById("swagger").innerHTML = '<p style="padding:20px;font-family:var(--mono);font-size:13px;color:var(--muted)">Swagger UI could not load (offline). Deploy the stack and open this page over HTTP.</p>';
+      return;
+    }
+    SwaggerUIBundle({
+      url: "openapi.yaml",
+      domNode: document.getElementById("swagger"),
+      deepLinking: false, tryItOutEnabled: true, defaultModelsExpandDepth: -1,
+      requestInterceptor: (req) => {
+        // Route every call through the dashboard's reverse proxy so it stays same-origin (no CORS).
+        try { const u = new URL(req.url); req.url = window.location.origin + "/impl/" + selected + u.pathname + u.search; }
+        catch (_) { /* relative already */ }
+        return req;
+      },
+    });
+  }
+  document.getElementById("swgClose").addEventListener("click", () => document.getElementById("swaggerWrap").classList.remove("open"));
+
+  function renderBars(elId, rows, metric, colorFn) {
+    const el = document.getElementById(elId);
+    const max = Math.max(...rows.map(r => r.metrics[metric]));
+    el.innerHTML = rows.map(r => {
+      const v = r.metrics[metric]; const pct = Math.max((v/max)*72, 1.2);
+      return `<div class="bar-row ${r.reference?'is-ref':''}" title="${r.name}: ${v.toLocaleString()} ${METRIC_LABEL[metric]}">
+        <div class="bar-label">${r.name}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${colorFn(r)}"></div><span class="bar-val">${v.toLocaleString()}</span></div>
+      </div>`;
+    }).join("");
+  }
+  document.querySelectorAll("#metricToggle button").forEach(b =>
+    b.addEventListener("click", () => { metricA = b.dataset.metric; document.querySelectorAll("#metricToggle button").forEach(x => x.setAttribute("aria-pressed", x===b)); renderAxisA(); }));
+  function renderAxisA() {
+    const rows = DATA.filter(d => d.axis==="A").slice().sort((a,b)=>a.metrics[metricA]-b.metrics[metricA]);
+    const accent = getComputedStyle(root).getPropertyValue("--accent").trim();
+    renderBars("axisA", rows, metricA, () => accent);
+  }
+  function renderAxisB() {
+    const rows = DATA.filter(d => d.axis==="B").concat(DATA.find(d=>d.reference)).slice().sort((a,b)=>a.metrics.lines-b.metrics.lines);
+    renderBars("axisB", rows, "lines", (r)=>famColor(r.family));
+  }
+  function renderTable() {
+    document.querySelector("#dataTable tbody").innerHTML = DATA.slice().sort((a,b)=>a.metrics.files-b.metrics.files).map(d => `
+      <tr><td class="nm">${d.name}${d.reference?' <span style="color:var(--accent);font-size:11px">ref</span>':''}</td>
+      <td style="text-align:left"><span class="fam-cell"><span class="dot" style="background:${famColor(d.family)}"></span>${d.family}</span></td>
+      <td>${d.axis}</td><td>${d.metrics.files}</td><td>${d.metrics.lines.toLocaleString()}</td><td>${d.metrics.nonblank.toLocaleString()}</td>
+      <td style="text-align:left;font-family:var(--mono);font-size:12px;color:var(--muted)">${d.concurrency}</td>
+      <td style="color:var(--good-ink)">✓ pass</td></tr>`).join("");
+  }
+  document.getElementById("foot").innerHTML = "Code metrics computed live from source · perf pending Phase 2 · contract v1.0.0<br>Behavioural parity is by-construction until the conformance suite runs on Docker. Build status verified: 10/10 compile.";
+
+  function renderAll() { renderKpis(); renderFamilies(); renderDetail(); renderAxisA(); renderAxisB(); renderTable(); }
+
+  // Prefer the generated data.json (kept in sync by scripts/gen-dashboard-data.mjs); fall back to embedded.
+  fetch("data.json").then(r => r.ok ? r.json() : Promise.reject()).then(j => { if (j && j.implementations) DATA = j.implementations; })
+    .catch(() => {}).finally(renderAll);
+</script>
+</body>
+</html>
