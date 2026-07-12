@@ -201,6 +201,8 @@ venv/
 
 # Node / TypeScript (future ts-* implementations, tooling)
 node_modules/
+dist/
+*.tsbuildinfo
 
 # Benchmark output
 bench/results/

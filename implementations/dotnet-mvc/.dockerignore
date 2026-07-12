@@ -1,0 +1,22 @@
+# Build artifacts
+**/bin/
+**/obj/
+
+# IDE files
+.vs/
+.vscode/
+*.user
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docs
+README.md
+*.http
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore

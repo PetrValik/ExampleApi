@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ExampleApi.Infrastructure</RootNamespace>
+    <AssemblyName>ExampleApi.Infrastructure</AssemblyName>
+  </PropertyGroup>
+
+  <!--
+    Infrastructure implements the Application ports with concrete adapters:
+      * EF Core + Npgsql for persistence (ArticleRepository, UnitOfWork, AppDbContext)
+      * HS256 JWT issuance + bearer validation (JwtTokenService, AddJwtBearer)
+    It depends on Application (and Domain transitively) — never the other way round.
+
+    It opts into the ASP.NET Core shared framework via FrameworkReference so it can wire
+    authentication and read configuration/logging without hunting individual
+    Microsoft.Extensions.* packages. This keeps all framework-coupled adapter code in the
+    one layer that is allowed to know about frameworks.
+  -->
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.4.0" />
+  </ItemGroup>
+
+</Project>
