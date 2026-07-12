@@ -15,26 +15,32 @@ Implementations are independent — they can be built in any order once Phase 0 
 
 Design: [`docs/superpowers/specs/2026-07-12-example-api-multiapproach-showcase-design.md`](superpowers/specs/2026-07-12-example-api-multiapproach-showcase-design.md).
 
-## Phase 1 — first axis-A sibling
+## Phase 1 — all nine sibling implementations ✅ (built, pending live conformance)
 
-- **`dotnet-mvc`** — the sharpest contrast to VSA (controllers + services + repositories),
-  same runtime. Pass conformance, then fill the first real axis-A row in
-  [`comparison.md`](comparison.md).
+Built in one parallel batch to [`CONTRACT-FOR-IMPLEMENTERS.md`](../implementations/CONTRACT-FOR-IMPLEMENTERS.md);
+all build/typecheck clean and are Docker-ready. First code-ceremony numbers in
+[`comparison.md`](comparison.md).
 
-## Phase 2 — first axis-B sibling + real benchmarks
+- Axis A (.NET): `dotnet-minimal`, `dotnet-mvc`, `dotnet-clean`, `dotnet-mediatr`.
+- Axis B: `python-fastapi`, `python-django`, `python-flask`, `ts-express`, `ts-nestjs`.
 
-- **`python-fastapi`** — fast to write, strong perf contrast to .NET.
-- Wire the [`bench/`](../bench) harness (k6) and produce the first axis-B perf table.
+**Remaining for Phase 1 to be truly "done": run the live conformance suite against each** (needs
+Docker) and fix any parity gaps it surfaces — `./scripts/verify-impl.sh implementations/<name>`.
+The build already surfaced one reference bug (case-sensitive name filter → fixed with `ILike`);
+expect the live run to surface a few more per impl. Sibling test suites are also follow-on.
 
-## Phase 3+ — breadth
+## Phase 2 — real benchmarks (the main remaining value)
 
-- `dotnet-clean` (Clean Architecture — the `kit-clean-arch-dotnet` pack fits here).
-- `dotnet-mediatr` (VSA + MediatR + `Result<T>` — the canonical kit flavour, as its **own**
-  implementation rather than a rewrite of the reference).
-- `python-django`, `ts-express`.
+- Wire the [`bench/`](../bench) k6 harness on a host with Docker; run the identical load profile
+  against each implementation; fill the axis-B perf table (RPS, p50/p95/p99, RAM, image size).
+- Keep the axes separate: axis-A stays a code/ceremony comparison, axis-B the perf one.
 
-Explicitly **out of scope**: plain JavaScript and Java (no working knowledge on hand — quality
-would suffer). Revisit only if that changes.
+## Phase 3+ — depth
+
+- Per-sibling **test suites** (each currently relies on the shared conformance suite only).
+- Optional extra variants **in already-present toolchains** (e.g. a Go/Rust impl would need those
+  toolchains installed first). Explicitly **out of scope**: plain JavaScript and Java (no working
+  knowledge on hand). Revisit only if that changes.
 
 ## Contract versioning
 

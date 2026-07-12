@@ -46,18 +46,26 @@ example-api/
 
 ## Implementations
 
-| Approach | Runtime | Axis | Status | Conformance |
-|----------|---------|:----:|--------|:-----------:|
-| [**dotnet-vsa**](implementations/dotnet-vsa) — Vertical Slice | .NET 10 | A (reference) | ✅ reference | suite ready¹ |
-| dotnet-mvc — Controllers/Services/Repos | .NET 10 | A | 🔲 planned | — |
-| dotnet-clean — Clean Architecture | .NET 10 | A | 🔲 planned | — |
-| dotnet-mediatr — VSA + MediatR/Result | .NET 10 | A | 🔲 planned | — |
-| python-fastapi | Python | B | 🔲 planned | — |
-| python-django | Python | B | 🔲 planned | — |
-| ts-express | Node/TS | B | 🔲 planned | — |
+All ten build/typecheck clean and ship a Dockerfile + compose (own PostgreSQL, port 8080).
+"Conforms" = passes the [conformance suite](conformance); it is *by construction* until the live
+run executes (pending Docker — see *Status*).
 
-¹ The conformance suite is complete and statically verified; the live green run is pending a
-Docker daemon (see *Status* below).
+| Approach | Runtime | Axis | Build | Conforms |
+|----------|---------|:----:|:-----:|:--------:|
+| [**dotnet-vsa**](implementations/dotnet-vsa) — Vertical Slice *(reference)* | .NET 10 | A | ✅ | suite ready¹ |
+| [dotnet-minimal](implementations/dotnet-minimal) — one file, no abstractions | .NET 10 | A | ✅ | by-construction |
+| [dotnet-mvc](implementations/dotnet-mvc) — Controllers/Services/Repos | .NET 10 | A | ✅ | by-construction |
+| [dotnet-clean](implementations/dotnet-clean) — Clean Architecture (4 projects) | .NET 10 | A | ✅ | by-construction |
+| [dotnet-mediatr](implementations/dotnet-mediatr) — VSA + MediatR + Result | .NET 10 | A | ✅ | by-construction |
+| [python-fastapi](implementations/python-fastapi) — FastAPI + SQLAlchemy | Python | B | ✅ | by-construction |
+| [python-django](implementations/python-django) — Django + DRF | Python | B | ✅ | by-construction |
+| [python-flask](implementations/python-flask) — Flask + SQLAlchemy | Python | B | ✅ | by-construction |
+| [ts-express](implementations/ts-express) — Express + Prisma | Node/TS | B | ✅ | by-construction |
+| [ts-nestjs](implementations/ts-nestjs) — NestJS + TypeORM | Node/TS | B | ✅ | by-construction |
+
+¹ The conformance suite is complete and statically verified; every impl is built to it. The live
+green run is pending a Docker daemon (see *Status*). Contract details every impl follows:
+[`implementations/CONTRACT-FOR-IMPLEMENTERS.md`](implementations/CONTRACT-FOR-IMPLEMENTERS.md).
 
 ## How it fits together
 
@@ -100,14 +108,16 @@ Code-size metrics for the axis-A table:
 
 ## Status
 
-**Phase 0 complete** — the current .NET code is now the clean reference implementation
-(`dotnet-vsa`), the contract and conformance suite are extracted, and the repo is structured
-to grow. See [`docs/roadmap.md`](docs/roadmap.md) for what's next and
+**Phase 0 complete + all 10 implementations built.** The reference (`dotnet-vsa`) is polished, the
+contract + conformance suite are extracted, and **nine sibling implementations** now exist — each
+building/typechecking clean and Docker-ready. See [`docs/comparison.md`](docs/comparison.md) for the
+first code-ceremony numbers, [`docs/roadmap.md`](docs/roadmap.md) for what's next, and
 [`docs/superpowers/specs/`](docs/superpowers/specs) for the design.
 
-> The live conformance/integration/bench runs need a Docker daemon (Testcontainers for the
-> .NET integration tests; docker-compose for conformance and bench). Everything is authored
-> and statically verified; the runs are one command away where Docker is available.
+> **Docker was unavailable in the build environment**, so the live conformance runs (which prove
+> behavioural parity) and the benchmarks have **not executed yet** — every implementation is built
+> *to* the contract and is one command from a green run wherever Docker is up:
+> `./scripts/verify-impl.sh implementations/<name>`. Treat "conforms" as by-construction until then.
 
 ## License
 
