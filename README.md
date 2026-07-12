@@ -106,13 +106,38 @@ Code-size metrics for the axis-A table:
 ./scripts/metrics.sh
 ```
 
+## Dashboard
+
+A single-page control panel ([`dashboard/`](dashboard)) is the visual front door: pick an
+implementation, inspect its stack and code metrics, **call it live** through an embedded Swagger UI,
+and read the code-ceremony charts. It reads the same metrics the tables do.
+
+```bash
+# the whole showcase — dashboard + all ten implementations, each with its own database
+docker compose -f docker-compose.all.yml up --build
+# dashboard http://localhost:8080  ·  implementations http://localhost:8081..8090
+```
+
+Charts and switcher work standalone; the live API explorer needs the implementations running.
+The dashboard proxies to each impl by service name (`/impl/<name>/`), so Swagger's "try it out"
+stays same-origin. See [`dashboard/README.md`](dashboard/README.md).
+
 ## Status
 
 **Phase 0 complete + all 10 implementations built.** The reference (`dotnet-vsa`) is polished, the
 contract + conformance suite are extracted, and **nine sibling implementations** now exist — each
 building/typechecking clean and Docker-ready. See [`docs/comparison.md`](docs/comparison.md) for the
-first code-ceremony numbers, [`docs/roadmap.md`](docs/roadmap.md) for what's next, and
+full numbers, [`docs/roadmap.md`](docs/roadmap.md) for what's next, and
 [`docs/superpowers/specs/`](docs/superpowers/specs) for the design.
+
+**First finding (axis A — code ceremony).** The same behaviour, across the .NET styles, spans
+**1 file / 382 lines** (`dotnet-minimal`, everything inline) to **48 files / 1,823 lines**
+(`dotnet-vsa`) — a ~48× file-count and ~4.8× line spread with near-identical runtime performance.
+Layered and MediatR styles land in between (29–46 files). The takeaway isn't "minimal wins":
+structure buys boundaries, testability and delete-a-folder-to-delete-a-feature — this just makes
+the price of that structure visible. Cross-runtime, the Python trio (11–16 files) and Express
+(14) are markedly leaner than any structured .NET style; NestJS (21) recreates the ceremony trade
+inside Node. Performance (axis B) is the real cross-runtime question and lands in Phase 2.
 
 > **Docker was unavailable in the build environment**, so the live conformance runs (which prove
 > behavioural parity) and the benchmarks have **not executed yet** — every implementation is built
