@@ -5,7 +5,7 @@ from __future__ import annotations
 import math
 from decimal import Decimal
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, Depends, Query, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -164,13 +164,16 @@ async def update_article(
 async def delete_article(
     article_id: int,
     session: AsyncSession = Depends(get_session),
-) -> JSONResponse:
+) -> Response:
     article = await session.get(Article, article_id)
     if article is None:
         raise NotFoundProblem(f"Article with ID {article_id} was not found.")
     await session.delete(article)
     await session.commit()
-    return JSONResponse(status_code=204, content=None)
+    # 204 must carry NO body — JSONResponse(content=None) emits `null`, which is an
+    # illegal 204 body and desyncs HTTP keep-alive (the next request on the connection
+    # then fails with "Server disconnected"). A bare Response sends the correct empty 204.
+    return Response(status_code=204)
 
 
 @router.post("/articles-concurrent")

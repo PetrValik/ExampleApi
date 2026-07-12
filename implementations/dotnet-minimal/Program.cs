@@ -167,7 +167,7 @@ app.MapGet("/api/articles", async (
     if (!string.IsNullOrWhiteSpace(name))
     {
         var esc = name.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_");
-        query = query.Where(a => EF.Functions.Like(a.Name, $"%{esc}%"));
+        query = query.Where(a => EF.Functions.ILike(a.Name, $"%{esc}%"));
     }
     if (!string.IsNullOrWhiteSpace(category))
         query = query.Where(a => a.Category == category);

@@ -28,7 +28,7 @@ internal sealed class GetArticlesHandler(AppDbContext dbContext)
         if (!string.IsNullOrWhiteSpace(request.Name))
         {
             var escaped = EscapeLikePattern(request.Name);
-            query = query.Where(article => EF.Functions.Like(article.Name, $"%{escaped}%"));
+            query = query.Where(article => EF.Functions.ILike(article.Name, $"%{escaped}%"));
         }
 
         if (!string.IsNullOrWhiteSpace(request.Category))
