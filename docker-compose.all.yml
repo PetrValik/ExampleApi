@@ -1,0 +1,284 @@
+# Run the whole showcase: the dashboard + all ten implementations, each with its own PostgreSQL.
+#
+#   docker compose -f docker-compose.all.yml up --build
+#   dashboard  -> http://localhost:8080
+#   impls      -> http://localhost:8081 .. 8090  (also reachable in-cluster by service name)
+#
+# Design: every implementation keeps the exact environment from its own docker-compose.yml.
+# Each gets a PRIVATE network on which its database is aliased to the hostname that impl already
+# expects (`postgres`, or `db` for python-flask), so no connection string is rewritten. The APIs
+# also share the `web` network so the dashboard can reverse-proxy to them by service name.
+#
+# NOTE: authored without a running Docker daemon — validate before relying on it:
+#   docker compose -f docker-compose.all.yml config
+
+name: example-api-showcase
+
+x-postgres: &postgres
+  image: postgres:16-alpine
+  environment:
+    POSTGRES_DB: exampleapi
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+  healthcheck:
+    test: ["CMD-SHELL", "pg_isready -U postgres -d exampleapi"]
+    interval: 5s
+    timeout: 5s
+    retries: 10
+  restart: unless-stopped
+
+services:
+  # ---------------------------------------------------------------- dashboard
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    ports: ["8080:80"]
+    networks: [web]
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------- dotnet-vsa
+  dotnet-vsa:
+    build: { context: ./implementations/dotnet-vsa }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=exampleapi;Username=postgres;Password=postgres
+      - Jwt__Issuer=ExampleApi
+      - Jwt__Audience=ExampleApiClient
+      - Jwt__SecretKey=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION
+      - Jwt__ExpirationMinutes=60
+    ports: ["8081:8080"]
+    depends_on:
+      db-dotnet-vsa: { condition: service_healthy }
+    networks: [web, net-dotnet-vsa]
+    restart: unless-stopped
+  db-dotnet-vsa:
+    <<: *postgres
+    networks:
+      net-dotnet-vsa: { aliases: [postgres] }
+    volumes: [pg-dotnet-vsa:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- dotnet-minimal
+  dotnet-minimal:
+    build: { context: ./implementations/dotnet-minimal }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=exampleapi;Username=postgres;Password=postgres
+      - Jwt__Issuer=ExampleApi
+      - Jwt__Audience=ExampleApiClient
+      - Jwt__SecretKey=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION-32chars-minimum
+      - Jwt__ExpirationMinutes=60
+    ports: ["8082:8080"]
+    depends_on:
+      db-dotnet-minimal: { condition: service_healthy }
+    networks: [web, net-dotnet-minimal]
+    restart: unless-stopped
+  db-dotnet-minimal:
+    <<: *postgres
+    networks:
+      net-dotnet-minimal: { aliases: [postgres] }
+    volumes: [pg-dotnet-minimal:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- dotnet-mvc
+  dotnet-mvc:
+    build: { context: ./implementations/dotnet-mvc }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=exampleapi;Username=postgres;Password=postgres
+      - Jwt__Issuer=ExampleApi
+      - Jwt__Audience=ExampleApiClient
+      - Jwt__SecretKey=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION-32chars-minimum
+      - Jwt__ExpirationMinutes=60
+    ports: ["8083:8080"]
+    depends_on:
+      db-dotnet-mvc: { condition: service_healthy }
+    networks: [web, net-dotnet-mvc]
+    restart: unless-stopped
+  db-dotnet-mvc:
+    <<: *postgres
+    networks:
+      net-dotnet-mvc: { aliases: [postgres] }
+    volumes: [pg-dotnet-mvc:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- dotnet-clean
+  dotnet-clean:
+    build: { context: ./implementations/dotnet-clean }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=exampleapi;Username=postgres;Password=postgres
+      - Jwt__Issuer=ExampleApi
+      - Jwt__Audience=ExampleApiClient
+      - Jwt__SecretKey=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION-32chars-min
+      - Jwt__ExpirationMinutes=60
+    ports: ["8084:8080"]
+    depends_on:
+      db-dotnet-clean: { condition: service_healthy }
+    networks: [web, net-dotnet-clean]
+    restart: unless-stopped
+  db-dotnet-clean:
+    <<: *postgres
+    networks:
+      net-dotnet-clean: { aliases: [postgres] }
+    volumes: [pg-dotnet-clean:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- dotnet-mediatr
+  dotnet-mediatr:
+    build: { context: ./implementations/dotnet-mediatr }
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__Default=Host=postgres;Port=5432;Database=exampleapi;Username=postgres;Password=postgres
+      - Jwt__Issuer=ExampleApi
+      - Jwt__Audience=ExampleApiClient
+      - Jwt__SecretKey=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION-32chars-minimum
+      - Jwt__ExpirationMinutes=60
+    ports: ["8085:8080"]
+    depends_on:
+      db-dotnet-mediatr: { condition: service_healthy }
+    networks: [web, net-dotnet-mediatr]
+    restart: unless-stopped
+  db-dotnet-mediatr:
+    <<: *postgres
+    networks:
+      net-dotnet-mediatr: { aliases: [postgres] }
+    volumes: [pg-dotnet-mediatr:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- python-fastapi
+  python-fastapi:
+    build: { context: ./implementations/python-fastapi }
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:postgres@postgres:5432/exampleapi
+      - JWT_SECRET=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION-32chars-minimum
+      - JWT_ISSUER=ExampleApi
+      - JWT_AUDIENCE=ExampleApiClient
+      - JWT_EXPIRATION_MINUTES=60
+    ports: ["8086:8080"]
+    depends_on:
+      db-python-fastapi: { condition: service_healthy }
+    networks: [web, net-python-fastapi]
+    restart: unless-stopped
+  db-python-fastapi:
+    <<: *postgres
+    networks:
+      net-python-fastapi: { aliases: [postgres] }
+    volumes: [pg-python-fastapi:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- python-django
+  python-django:
+    build: { context: ./implementations/python-django }
+    environment:
+      - POSTGRES_DB=exampleapi
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - DJANGO_DEBUG=false
+      - DJANGO_ALLOWED_HOSTS=*
+      - JWT_SECRET=CHANGE-THIS-DEMO-SECRET-AT-LEAST-32-CHARACTERS-LONG
+      - JWT_ISSUER=ExampleApi
+      - JWT_AUDIENCE=ExampleApiClient
+      - JWT_EXPIRATION_MINUTES=60
+    ports: ["8087:8080"]
+    depends_on:
+      db-python-django: { condition: service_healthy }
+    networks: [web, net-python-django]
+    restart: unless-stopped
+  db-python-django:
+    <<: *postgres
+    networks:
+      net-python-django: { aliases: [postgres] }
+    volumes: [pg-python-django:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- python-flask (db host alias: `db`)
+  python-flask:
+    build: { context: ./implementations/python-flask }
+    environment:
+      - DATABASE_URL=postgresql+psycopg://postgres:postgres@db:5432/exampleapi
+      - JWT_SECRET_KEY=CHANGE-THIS-IN-PRODUCTION-use-a-long-random-secret-key-min-32chars
+      - JWT_ISSUER=ExampleApi
+      - JWT_AUDIENCE=ExampleApiClient
+      - JWT_EXPIRATION_MINUTES=60
+    ports: ["8088:8080"]
+    depends_on:
+      db-python-flask: { condition: service_healthy }
+    networks: [web, net-python-flask]
+    restart: unless-stopped
+  db-python-flask:
+    <<: *postgres
+    networks:
+      net-python-flask: { aliases: [db] }
+    volumes: [pg-python-flask:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- ts-express
+  ts-express:
+    build: { context: ./implementations/ts-express }
+    environment:
+      - PORT=8080
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/exampleapi?schema=public
+      - JWT_SECRET=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION-super-secret
+      - JWT_ISSUER=ExampleApi
+      - JWT_AUDIENCE=ExampleApiClient
+      - JWT_EXPIRATION_MINUTES=60
+    ports: ["8089:8080"]
+    depends_on:
+      db-ts-express: { condition: service_healthy }
+    networks: [web, net-ts-express]
+    restart: unless-stopped
+  db-ts-express:
+    <<: *postgres
+    networks:
+      net-ts-express: { aliases: [postgres] }
+    volumes: [pg-ts-express:/var/lib/postgresql/data]
+
+  # ---------------------------------------------------------------- ts-nestjs
+  ts-nestjs:
+    build: { context: ./implementations/ts-nestjs }
+    environment:
+      - PORT=8080
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=exampleapi
+      - JWT_SECRET=CHANGE-THIS-BEFORE-RUNNING-IN-PRODUCTION-super-secret
+      - JWT_ISSUER=ExampleApi
+      - JWT_AUDIENCE=ExampleApiClient
+      - JWT_EXPIRATION_MINUTES=60
+    ports: ["8090:8080"]
+    depends_on:
+      db-ts-nestjs: { condition: service_healthy }
+    networks: [web, net-ts-nestjs]
+    restart: unless-stopped
+  db-ts-nestjs:
+    <<: *postgres
+    networks:
+      net-ts-nestjs: { aliases: [postgres] }
+    volumes: [pg-ts-nestjs:/var/lib/postgresql/data]
+
+networks:
+  web:
+  net-dotnet-vsa:
+  net-dotnet-minimal:
+  net-dotnet-mvc:
+  net-dotnet-clean:
+  net-dotnet-mediatr:
+  net-python-fastapi:
+  net-python-django:
+  net-python-flask:
+  net-ts-express:
+  net-ts-nestjs:
+
+volumes:
+  pg-dotnet-vsa:
+  pg-dotnet-minimal:
+  pg-dotnet-mvc:
+  pg-dotnet-clean:
+  pg-dotnet-mediatr:
+  pg-python-fastapi:
+  pg-python-django:
+  pg-python-flask:
+  pg-ts-express:
+  pg-ts-nestjs:

@@ -1,0 +1,11 @@
+# Conformance suite dependencies (black-box HTTP tests, no implementation coupling).
+httpx>=0.27
+pytest>=8.0
+
+# Contract validation helpers.
+pyyaml>=6.0
+openapi-spec-validator>=0.7
+
+# OPTIONAL — property-based smoke driven by the OpenAPI contract (see smoke.sh / README).
+# Install separately; may require a specific Python version.
+# schemathesis>=3.30

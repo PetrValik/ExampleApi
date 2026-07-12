@@ -1,219 +1,156 @@
-# Example API
+# Example API — a multi-approach showcase
 
-> A production-style RESTful API for article/product management, built to showcase modern .NET development — Vertical Slice Architecture, Minimal APIs, PostgreSQL with EF Core, JWT authentication, and a thorough automated test suite.
+> The **same** small API — article/product CRUD, JWT auth, health — implemented many ways,
+> so the approaches can be compared **fairly**, side by side.
+
+One OpenAPI contract. One conformance suite every implementation must pass. One benchmark
+harness. Different architectures on the same runtime; different runtimes entirely. The name
+"Example API" taken literally.
 
 ![.NET 10](https://img.shields.io/badge/.NET-10-512BD4?logo=dotnet&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![PostgreSQL 16](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
-## Overview
+## Why
 
-**Example API** is a demonstration back-end service for managing shop articles (products). It is intentionally small in domain scope but built the way a real production service would be: features are sliced vertically, requests are validated at the edge, errors map to RFC 7807 problem-details responses, the database uses optimistic concurrency, and every slice is covered by both unit and integration tests.
+A CRUD API is small enough to implement repeatedly, yet rich enough to expose the real
+differences between approaches. Implementing it once per architecture/runtime and holding
+everything else constant (same contract, same database, same load) turns vague opinions
+("VSA is simpler", "FastAPI is faster") into numbers you can point at.
 
-The project exists as a portfolio piece to demonstrate practical, current .NET back-end skills rather than to ship a specific product.
+### Two comparison axes — kept separate on purpose
 
-## Highlights
+Mixing these is the trap that makes benchmark numbers meaningless:
 
-- **Vertical Slice Architecture** — each feature (create, read, update, delete, batch, auth) is a self-contained folder with its own endpoint, handler, request/response DTOs, and validators.
-- **Minimal APIs** — endpoints are auto-discovered and registered through a small `IEndpoint` abstraction, keeping `Program.cs` lean.
-- **PostgreSQL + EF Core 10** — real relational persistence with EF Core migrations and connection configuration via app settings / environment variables.
-- **Optimistic concurrency** — update conflicts are detected using PostgreSQL's native `xmin` system column mapped to a `RowVersion` property, returning `409 Conflict` on stale writes.
-- **JWT Bearer authentication** — a token endpoint issues signed JWTs; write endpoints require authorization, wired through into the OpenAPI/Scalar security scheme.
-- **FluentValidation** — declarative request validation runs before handlers via a reusable validation filter, producing `400` validation-problem responses.
-- **Global exception handling** — a single middleware maps domain exceptions (`NotFoundException`, `ConflictException`) and unexpected errors to consistent `ProblemDetails` payloads.
-- **Interactive docs** — OpenAPI document plus a [Scalar](https://scalar.com/) UI with request examples and a "try it out" experience.
-- **Containerised** — multi-stage `Dockerfile` and a `docker-compose.yml` that brings up the API together with PostgreSQL.
-- **150+ automated tests** — xUnit + FluentAssertions, with integration tests running against a real PostgreSQL instance spun up on the fly via Testcontainers.
+| Axis | Members | What actually differs | What we measure |
+|------|---------|-----------------------|-----------------|
+| **A · same runtime, different architecture** | .NET: VSA, MVC, Clean Arch, MediatR | code shape / ceremony — **not** speed (all ASP.NET Core → near-identical throughput) | files, LOC, coupling, testability |
+| **B · different runtime / framework** | .NET vs FastAPI vs Django vs Express | the runtime itself | RPS, p50/p95/p99, RAM, image size, cold start |
 
-## Tech stack
+"VSA is 2 % faster than MediatR" is noise from GC/JIT. "VSA needs N fewer files than MVC"
+(axis A) and "FastAPI serves X RPS vs .NET's Y" (axis B) are the real stories. See
+[`docs/comparison.md`](docs/comparison.md).
 
-| Category            | Technology |
-|---------------------|------------|
-| Framework           | .NET 10 / ASP.NET Core Minimal APIs |
-| Language            | Modern C# (records, required members, collection expressions, nullable reference types) |
-| Database            | PostgreSQL 16 |
-| Data access         | Entity Framework Core 10 (Npgsql provider) |
-| Authentication      | JWT Bearer (`Microsoft.AspNetCore.Authentication.JwtBearer`) |
-| Validation          | FluentValidation 11 |
-| API documentation   | OpenAPI (`Microsoft.AspNetCore.OpenApi`) + Scalar UI |
-| Testing             | xUnit, FluentAssertions, EF Core InMemory (unit), Testcontainers (integration), Coverlet |
-| Containerisation    | Docker + Docker Compose |
-| Architecture        | Vertical Slice Architecture, REPR (Request–Endpoint–Response) |
+## Layout
 
-## Getting started
+```
+example-api/
+├── contract/           # openapi.yaml — the single source of truth (+ fixtures)
+├── conformance/        # black-box HTTP suite every implementation must pass
+├── bench/              # load-test methodology + k6 harness
+├── implementations/
+│   └── dotnet-vsa/     # ← the reference implementation (.NET Vertical Slice)
+├── docs/               # comparison tables, roadmap, design specs
+└── scripts/            # verify-impl.sh, metrics.sh
+```
 
-### Prerequisites
+## Implementations
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
-- A running **PostgreSQL** instance (or use the provided Docker Compose setup)
-- Docker (optional, for containerised run and for integration tests)
+All ten build/typecheck clean and ship a Dockerfile + compose (own PostgreSQL, port 8080).
+"Conforms" = passes the [conformance suite](conformance); it is *by construction* until the live
+run executes (pending Docker — see *Status*).
 
-### Option A — Run with Docker Compose (API + PostgreSQL)
+| Approach | Runtime | Axis | Build | Conforms |
+|----------|---------|:----:|:-----:|:--------:|
+| [**dotnet-vsa**](implementations/dotnet-vsa) — Vertical Slice *(reference)* | .NET 10 | A | ✅ | suite ready¹ |
+| [dotnet-minimal](implementations/dotnet-minimal) — one file, no abstractions | .NET 10 | A | ✅ | by-construction |
+| [dotnet-mvc](implementations/dotnet-mvc) — Controllers/Services/Repos | .NET 10 | A | ✅ | by-construction |
+| [dotnet-clean](implementations/dotnet-clean) — Clean Architecture (4 projects) | .NET 10 | A | ✅ | by-construction |
+| [dotnet-mediatr](implementations/dotnet-mediatr) — VSA + MediatR + Result | .NET 10 | A | ✅ | by-construction |
+| [python-fastapi](implementations/python-fastapi) — FastAPI + SQLAlchemy | Python | B | ✅ | by-construction |
+| [python-django](implementations/python-django) — Django + DRF | Python | B | ✅ | by-construction |
+| [python-flask](implementations/python-flask) — Flask + SQLAlchemy | Python | B | ✅ | by-construction |
+| [ts-express](implementations/ts-express) — Express + Prisma | Node/TS | B | ✅ | by-construction |
+| [ts-nestjs](implementations/ts-nestjs) — NestJS + TypeORM | Node/TS | B | ✅ | by-construction |
 
-This is the quickest way to get a fully working stack:
+¹ The conformance suite is complete and statically verified; every impl is built to it. The live
+green run is pending a Docker daemon (see *Status*). Contract details every impl follows:
+[`implementations/CONTRACT-FOR-IMPLEMENTERS.md`](implementations/CONTRACT-FOR-IMPLEMENTERS.md).
+
+## How it fits together
+
+```
+contract/openapi.yaml ──► every implementation implements it
+        │
+        ├──► conformance/  drives each impl over HTTP, proves behavioural parity
+        └──► bench/         loads each impl identically, collects the metrics
+                                   │
+                                   ▼
+                            docs/comparison.md  (the tables)
+```
+
+An implementation is "done" when it **passes conformance**. Only then do its metrics go in a
+table — otherwise you would be comparing apps that don't do the same thing.
+
+## Quickstart
+
+Run the reference implementation and prove it conforms (needs Docker for PostgreSQL):
 
 ```bash
-docker compose up --build
+# boot the reference impl + its database
+cd implementations/dotnet-vsa && docker compose up --build -d && cd -
+
+# run the black-box conformance suite against it
+./conformance/run.sh http://localhost:8080
 ```
 
-The API becomes available at `http://localhost:8080`. Compose provisions a `postgres:16-alpine` container, waits for it to be healthy, and wires the connection string and JWT settings through environment variables.
-
-### Option B — Run locally with `dotnet run`
-
-1. Start PostgreSQL and make sure the connection string in `src/ExampleApi/appsettings.json` matches your instance (defaults to `Host=localhost;Port=5432;Database=exampleapi;Username=postgres;Password=postgres`).
-2. Run the API:
-
-   ```bash
-   cd src/ExampleApi
-   dotnet run
-   ```
-
-3. Open the interactive docs at **http://localhost:5088/scalar/v1**.
-
-On startup the application initialises the database (applies migrations / seeds data) automatically.
-
-### Authenticating
-
-Write operations require a JWT. Obtain one from the token endpoint using the demo credentials:
+Or end to end (boot → wait for health → conformance → teardown):
 
 ```bash
-curl -X POST http://localhost:5088/auth/token \
-  -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"admin"}'
+./scripts/verify-impl.sh implementations/dotnet-vsa
 ```
 
-Then send the returned token as `Authorization: Bearer <token>` on protected requests. In the Scalar UI you can paste the token into the **Bearer** auth field.
-
-> The token endpoint uses hardcoded demo credentials (`admin` / `admin`) on purpose — it is a stand-in for a real identity provider and is clearly marked as such in the code.
-
-## API endpoints
-
-### Authentication
-
-| Method | Endpoint       | Description                        | Auth |
-|--------|----------------|------------------------------------|------|
-| POST   | `/auth/token`  | Issue a JWT for the demo user      | none |
-
-### Articles
-
-| Method | Endpoint                     | Description                             | Status codes        | Auth |
-|--------|------------------------------|-----------------------------------------|---------------------|------|
-| GET    | `/api/articles`              | List articles with filters + pagination | 200                 | none |
-| GET    | `/api/articles/{id}`         | Get a single article by id              | 200, 404            | none |
-| POST   | `/api/articles`              | Create an article                       | 201, 400            | JWT  |
-| PUT    | `/api/articles/{id}`         | Update an article                       | 200, 400, 404, 409  | JWT  |
-| DELETE | `/api/articles/{id}`         | Delete an article                       | 204, 404            | JWT  |
-| POST   | `/api/articles-concurrent`   | Batch-create articles in parallel       | 201, 400            | JWT  |
-
-### Health
-
-| Method | Endpoint  | Description        |
-|--------|-----------|--------------------|
-| GET    | `/health` | API health status  |
-
-**Query parameters for `GET /api/articles`:**
-
-- `name` — partial, case-insensitive name match
-- `category` — exact category match
-- `page` — page number (default `1`)
-- `pageSize` — items per page (default `10`, max `100`)
-
-Paginated responses carry metadata (`totalCount`, `page`, `pageSize`, `hasNext`, `hasPrevious`).
-
-## Project structure
-
-```
-ExampleApi/
-├── src/
-│   └── ExampleApi/
-│       ├── Features/                     # Vertical slices
-│       │   ├── Auth/                      # POST /auth/token (JWT issuance)
-│       │   ├── Articles/
-│       │   │   ├── Shared/                # Article entity, DTOs, mappings, shared validator
-│       │   │   ├── CreateArticle/         # POST /api/articles
-│       │   │   ├── GetArticle/            # GET  /api/articles/{id}
-│       │   │   ├── GetArticles/           # GET  /api/articles (filter + paging)
-│       │   │   ├── UpdateArticle/         # PUT  /api/articles/{id}
-│       │   │   ├── DeleteArticle/         # DELETE /api/articles/{id}
-│       │   │   └── BatchCreateArticles/   # POST /api/articles-concurrent
-│       │   └── Health/                    # GET /health
-│       ├── Common/
-│       │   ├── Endpoints/                 # IEndpoint abstraction + auto-registration
-│       │   ├── Validation/                # Reusable validation filter
-│       │   ├── Exceptions/                # NotFoundException, ConflictException
-│       │   ├── Currency/                  # ISO 4217 currency validation
-│       │   └── Pagination/                # PagedResponse<T>
-│       ├── Infrastructure/Database/       # AppDbContext, migrations, initializer
-│       ├── Configuration/                 # Service + middleware extension methods, JwtSettings
-│       └── Program.cs                     # Slim entry point wiring it all together
-├── test/
-│   ├── ExampleApi.UnitTests/              # Handlers, validators, mappings, utilities
-│   └── ExampleApi.IntegrationTests/       # Full HTTP cycle over a real PostgreSQL container
-├── Dockerfile                            # Multi-stage build
-├── docker-compose.yml                    # API + PostgreSQL
-└── ExampleApi.slnx                       # Solution
-```
-
-Each feature slice follows the same shape:
-
-```
-Feature/
-├── IHandler.cs        # Handler interface (for DI + testability)
-├── Handler.cs         # Business logic
-├── Endpoint.cs        # HTTP mapping (implements IEndpoint)
-├── Request.cs         # Request DTO (when feature-specific)
-├── Validator.cs       # FluentValidation rules (when feature-specific)
-└── README.md          # Short feature note
-```
-
-## Architecture notes
-
-- **REPR pattern** — every endpoint is a thin adapter: it validates the request, delegates to a handler, and shapes the response. Handlers hold the business logic behind an interface so they can be unit-tested without HTTP.
-- **Endpoint auto-registration** — all `IEndpoint` implementations are discovered and mapped via `MapEndpoints()`, so adding a feature never means editing a central router.
-- **Composition in `Program.cs`** — service registration and the middleware pipeline are expressed as small, well-named extension methods (`AddDatabaseContext`, `AddJwtAuthentication`, `AddFeatures`, `UseGlobalExceptionHandler`, …), keeping the entry point readable.
-- **Optimistic concurrency** — the `Article.RowVersion` property maps to PostgreSQL's `xmin` system column; concurrent updates raise a `ConflictException` that surfaces as `409 Conflict`, so clients can refetch and retry.
-
-## Tests
-
-The suite mixes fast unit tests with realistic integration tests:
-
-| Type              | What it covers                                              | Backing store                     |
-|-------------------|-------------------------------------------------------------|-----------------------------------|
-| Unit tests        | Handlers, validators, mapping extensions, common utilities  | EF Core InMemory                  |
-| Integration tests | Full HTTP request/response cycle across every endpoint      | Real PostgreSQL via Testcontainers |
-
-Integration tests boot the app with `WebApplicationFactory<Program>` and start a throwaway `postgres:16-alpine` container per test run, applying EF Core migrations against it — so query translation, migrations, and concurrency behaviour are all exercised against the real database engine, not a substitute.
+Code-size metrics for the axis-A table:
 
 ```bash
-# Run everything
-dotnet test
-
-# Unit tests only
-dotnet test test/ExampleApi.UnitTests
-
-# Integration tests only (requires Docker to be running)
-dotnet test test/ExampleApi.IntegrationTests
+./scripts/metrics.sh
 ```
 
-> Integration tests need a working Docker daemon because Testcontainers provisions PostgreSQL on demand.
+## Dashboard
 
-## Database migrations
+A single-page control panel ([`dashboard/`](dashboard)) is the visual front door: pick an
+implementation, inspect its stack and code metrics, **call it live** through an embedded Swagger UI,
+and read the code-ceremony charts. It reads the same metrics the tables do.
 
 ```bash
-# Add a migration
-dotnet ef migrations add <Name> --project src/ExampleApi/ExampleApi.csproj
-
-# Apply migrations
-dotnet ef database update --project src/ExampleApi/ExampleApi.csproj
+# the whole showcase — dashboard + all ten implementations, each with its own database
+docker compose -f docker-compose.all.yml up --build
+# dashboard http://localhost:8080  ·  implementations http://localhost:8081..8090
 ```
 
-## Status & notes
+Charts and switcher work standalone; the live API explorer needs the implementations running.
+The dashboard proxies to each impl by service name (`/impl/<name>/`), so Swagger's "try it out"
+stays same-origin. See [`dashboard/README.md`](dashboard/README.md).
 
-This is a personal demonstration project and is complete for its intended scope. A few things are deliberately simplified and would be hardened before any real deployment:
+## Status
 
-- The `/auth/token` endpoint uses fixed demo credentials in place of a real identity provider.
-- JWT secrets and connection strings ship with placeholder development values — replace them via environment variables / secrets in any real environment.
+**Phase 0 complete + all 10 implementations built.** The reference (`dotnet-vsa`) is polished, the
+contract + conformance suite are extracted, and **nine sibling implementations** now exist — each
+building/typechecking clean and Docker-ready. See [`docs/comparison.md`](docs/comparison.md) for the
+full numbers, [`docs/roadmap.md`](docs/roadmap.md) for what's next, and
+[`docs/superpowers/specs/`](docs/superpowers/specs) for the design.
+
+**First finding (axis A — code ceremony).** The same behaviour, across the .NET styles, spans
+**1 file / 382 lines** (`dotnet-minimal`, everything inline) to **48 files / 1,823 lines**
+(`dotnet-vsa`) — a ~48× file-count and ~4.8× line spread with near-identical runtime performance.
+Layered and MediatR styles land in between (29–46 files). The takeaway isn't "minimal wins":
+structure buys boundaries, testability and delete-a-folder-to-delete-a-feature — this just makes
+the price of that structure visible. Cross-runtime, the Python trio (11–16 files) and Express
+(14) are markedly leaner than any structured .NET style; NestJS (21) recreates the ceremony trade
+inside Node. Performance (axis B) is the real cross-runtime question and lands in Phase 2.
+
+> **Docker was unavailable in the build environment**, so the live conformance runs and benchmarks
+> have **not executed locally** — every implementation is built *to* the contract. The
+> [CI workflow](.github/workflows/ci.yml) runs the conformance suite against all ten on GitHub's
+> runners (no local Docker needed), so the green run happens on push. Treat "conforms" as
+> by-construction until CI is green.
+
+## Deploy
+
+Cloud paths that don't need a local Docker daemon — CI (proves parity on runners), GitHub Pages
+(free public charts), Render (live reference API + Postgres), and self-hosting the full live
+switcher. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## License
 
-Released under the [MIT License](LICENSE).
+[MIT](LICENSE).

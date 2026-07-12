@@ -1,0 +1,30 @@
+// Prisma schema for the Example API (Node/TypeScript + Express implementation).
+//
+// The article's optimistic-concurrency token is a plain integer `version` column.
+// It starts at 1 on insert and is incremented on every update; the current value is
+// surfaced on the wire as `row_version`. A PUT carrying a stale `row_version` matches
+// no row on the conditional update and is reported as 409 Conflict. This is the simple,
+// portable approach the contract explicitly allows (the .NET reference uses Postgres xmin).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Article {
+  articleId   Int     @id @default(autoincrement()) @map("article_id")
+  name        String  @db.VarChar(64)
+  description String  @db.VarChar(2048)
+  category    String? @db.VarChar(64)
+  // Stored as PostgreSQL double precision so it round-trips as a JSON number
+  // (a Prisma Decimal would serialize as a string and break the wire contract).
+  price       Float
+  currency    String? @db.VarChar(3)
+  version     Int     @default(1)
+
+  @@map("articles")
+}

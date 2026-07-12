@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>ExampleApi.Domain</RootNamespace>
+    <AssemblyName>ExampleApi.Domain</AssemblyName>
+  </PropertyGroup>
+
+  <!--
+    The Domain project sits at the centre of the dependency graph.
+    It references NOTHING outside the base class library: no EF Core,
+    no ASP.NET, no serialization framework. This enforces the Clean
+    Architecture dependency rule (dependencies point inward only).
+  -->
+
+</Project>

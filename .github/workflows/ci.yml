@@ -1,0 +1,86 @@
+name: CI
+
+# Builds every implementation and runs the black-box conformance suite against each — live, on
+# GitHub's runners (which have a working Docker), so parity is proven without a local Docker daemon.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract:
+    name: Contract + suite sanity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install tooling
+        run: pip install -r conformance/requirements.txt openapi-spec-validator
+      - name: Validate the OpenAPI contract
+        run: |
+          python - <<'PY'
+          from openapi_spec_validator import validate
+          from openapi_spec_validator.readers import read_from_filename
+          spec, _ = read_from_filename("contract/openapi.yaml")
+          validate(spec)
+          print("openapi.yaml valid:", len(spec["paths"]), "paths")
+          PY
+      - name: Conformance suite collects
+        run: python -m pytest conformance --collect-only -q
+
+  conformance:
+    name: conformance · ${{ matrix.impl }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        impl:
+          - dotnet-vsa
+          - dotnet-minimal
+          - dotnet-mvc
+          - dotnet-clean
+          - dotnet-mediatr
+          - python-fastapi
+          - python-django
+          - python-flask
+          - ts-express
+          - ts-nestjs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install conformance deps
+        run: pip install -r conformance/requirements.txt
+      - name: Boot ${{ matrix.impl }} (compose up)
+        working-directory: implementations/${{ matrix.impl }}
+        run: docker compose up -d --build
+      - name: Wait for /health
+        run: |
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:8080/health >/dev/null; then
+              echo "healthy after $((i*3))s"; exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::${{ matrix.impl }} did not become healthy"; exit 1
+      - name: Run conformance suite
+        env:
+          BASE_URL: http://localhost:8080
+        run: python -m pytest conformance -v --tb=short
+      - name: Implementation logs (on failure)
+        if: failure()
+        working-directory: implementations/${{ matrix.impl }}
+        run: docker compose logs --no-color --tail=200
+      - name: Tear down
+        if: always()
+        working-directory: implementations/${{ matrix.impl }}
+        run: docker compose down -v
