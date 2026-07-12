@@ -18,9 +18,10 @@ fi
 # Source files, excluding build output, tests, virtualenvs and vendored deps.
 find_src() {
   find "$1" -type f \( -name '*.cs' -o -name '*.py' -o -name '*.ts' -o -name '*.js' \) \
-    -not -path '*/bin/*' -not -path '*/obj/*' \
+    -not -path '*/bin/*' -not -path '*/obj/*' -not -path '*/dist/*' \
     -not -path '*/test/*' -not -path '*/tests/*' -not -path '*[Tt]ests/*' \
-    -not -path '*/__pycache__/*' -not -path '*/.venv/*' -not -path '*/node_modules/*' \
+    -not -path '*/__pycache__/*' -not -path '*/.venv/*' -not -path '*/venv/*' \
+    -not -path '*/site-packages/*' -not -path '*/node_modules/*' \
     -not -path '*/Migrations/*'
 }
 

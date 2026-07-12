@@ -23,7 +23,7 @@ only (tests and generated EF migrations excluded); from [`scripts/metrics.sh`](.
 | **dotnet-mvc** | Controllers → Services → Repositories (classic layered) | 29 | 1097 | 917 | by-construction |
 | **dotnet-clean** | Clean Architecture, 4 projects, dependency rule inward | 40 | 1401 | 1185 | by-construction |
 | **dotnet-mediatr** | Vertical Slice + MediatR + `Result<T>` + pipeline validation | 46 | 1550 | 1312 | by-construction |
-| **dotnet-vsa** *(reference)* | Vertical Slice, hand-rolled handlers + exceptions | 48 | 1816 | 1589 | ✅ suite ready |
+| **dotnet-vsa** *(reference)* | Vertical Slice, hand-rolled handlers + exceptions | 48 | 1823 | 1596 | ✅ suite ready |
 
 **Reading it:** the spread is ~48× in file count and ~4.8× in LOC for the *same* behaviour.
 `dotnet-minimal` is the low-water mark — everything inline, nothing abstracted. The structured
@@ -50,12 +50,16 @@ is not directly comparable.
 | python-fastapi | FastAPI + SQLAlchemy 2 (async) | 14 | 755 | _pending Phase 2_ |
 | python-django | Django + DRF | 16 | 721 | _pending Phase 2_ |
 | ts-express | Express + Prisma (Node 24) | 14 | 747 | _pending Phase 2_ |
-| ts-nestjs | NestJS + TypeORM (Node 24) | 42 | 1718 | _pending Phase 2_ |
-| dotnet-vsa | .NET 10 | 48 | 1816 | _pending Phase 2_ |
+| ts-nestjs | NestJS + TypeORM (Node 24) | 21 | 850 | _pending Phase 2_ |
+| dotnet-vsa | .NET 10 | 48 | 1823 | _pending Phase 2_ |
 
 Even before perf numbers, an axis-A-style observation leaks in: within Node, **Express (14 files) vs
-NestJS (42 files)** is the same ceremony trade as minimal-vs-VSA in .NET — NestJS's modules/decorators
-cost files, Express stays lean.
+NestJS (21 files)** is the same ceremony trade as minimal-vs-VSA in .NET — NestJS's modules/decorators
+cost files, Express stays lean. And the Python trio (11–16 files) is markedly leaner than any
+structured .NET style for the same behaviour.
+
+> Numbers are from [`scripts/gen-dashboard-data.mjs`](../scripts/gen-dashboard-data.mjs) (canonical;
+> excludes build output incl. TS `dist/`) — the same source the dashboard reads.
 
 Methodology (warm-up, repeated runs, controlled variables) is in [`bench/README.md`](../bench/README.md).
 When perf numbers exist, a shareable chart can be generated from this table.

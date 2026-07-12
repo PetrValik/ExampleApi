@@ -1,0 +1,237 @@
+{
+  "generatedNote": "Code metrics computed live by scripts/gen-dashboard-data.mjs; perf pending Phase 2 benchmarks.",
+  "contractVersion": "1.0.0",
+  "implementations": [
+    {
+      "name": "dotnet-vsa",
+      "family": ".NET",
+      "axis": "A",
+      "stack": "Vertical Slice (hand-rolled handlers + exceptions)",
+      "reference": true,
+      "port": 8081,
+      "concurrency": "Postgres xmin",
+      "metrics": {
+        "files": 48,
+        "lines": 1823,
+        "nonblank": 1596
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "dotnet-minimal",
+      "family": ".NET",
+      "axis": "A",
+      "stack": "Minimal API — one Program.cs, no abstractions",
+      "port": 8082,
+      "concurrency": "Postgres xmin",
+      "metrics": {
+        "files": 1,
+        "lines": 382,
+        "nonblank": 327
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "dotnet-mvc",
+      "family": ".NET",
+      "axis": "A",
+      "stack": "Controllers → Services → Repositories (layered)",
+      "port": 8083,
+      "concurrency": "Postgres xmin",
+      "metrics": {
+        "files": 29,
+        "lines": 1097,
+        "nonblank": 917
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "dotnet-clean",
+      "family": ".NET",
+      "axis": "A",
+      "stack": "Clean Architecture — 4 projects, dependency rule inward",
+      "port": 8084,
+      "concurrency": "integer version column",
+      "metrics": {
+        "files": 40,
+        "lines": 1401,
+        "nonblank": 1185
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "dotnet-mediatr",
+      "family": ".NET",
+      "axis": "A",
+      "stack": "Vertical Slice + MediatR + Result<T>",
+      "port": 8085,
+      "concurrency": "Postgres xmin",
+      "metrics": {
+        "files": 46,
+        "lines": 1550,
+        "nonblank": 1312
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "python-fastapi",
+      "family": "Python",
+      "axis": "B",
+      "stack": "FastAPI + SQLAlchemy 2 + Pydantic v2 (async)",
+      "port": 8086,
+      "concurrency": "integer version column",
+      "metrics": {
+        "files": 14,
+        "lines": 755,
+        "nonblank": 582
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "python-django",
+      "family": "Python",
+      "axis": "B",
+      "stack": "Django + DRF + SimpleJWT",
+      "port": 8087,
+      "concurrency": "integer version column",
+      "metrics": {
+        "files": 16,
+        "lines": 721,
+        "nonblank": 566
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "python-flask",
+      "family": "Python",
+      "axis": "B",
+      "stack": "Flask + SQLAlchemy + flask-jwt-extended (sync WSGI)",
+      "port": 8088,
+      "concurrency": "integer version column",
+      "metrics": {
+        "files": 11,
+        "lines": 611,
+        "nonblank": 473
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "ts-express",
+      "family": "Node",
+      "axis": "B",
+      "stack": "Express + Prisma + zod (TypeScript)",
+      "port": 8089,
+      "concurrency": "integer version column",
+      "metrics": {
+        "files": 14,
+        "lines": 747,
+        "nonblank": 646
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    },
+    {
+      "name": "ts-nestjs",
+      "family": "Node",
+      "axis": "B",
+      "stack": "NestJS + TypeORM + class-validator",
+      "port": 8090,
+      "concurrency": "integer version column",
+      "metrics": {
+        "files": 21,
+        "lines": 850,
+        "nonblank": 754
+      },
+      "perf": {
+        "rps": null,
+        "p50": null,
+        "p95": null,
+        "p99": null,
+        "ramMb": null,
+        "imageMb": null
+      },
+      "conformance": "by-construction",
+      "build": "pass"
+    }
+  ]
+}
