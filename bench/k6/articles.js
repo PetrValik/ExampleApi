@@ -46,7 +46,8 @@ export function setup() {
 }
 
 export default function (data) {
-  const authHeaders = { ...JSON_HEADERS, Authorization: `Bearer ${data.token}` };
+  // Object.assign, not object spread — k6's JS compiler doesn't parse `{ ...obj }`.
+  const authHeaders = Object.assign({}, JSON_HEADERS, { Authorization: `Bearer ${data.token}` });
 
   // ~70% list, ~20% get, ~10% create — a read-heavy but write-touching mix.
   const roll = Math.random();
