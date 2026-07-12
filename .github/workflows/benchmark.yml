@@ -1,0 +1,49 @@
+name: Benchmark
+
+# Measures every implementation with the shared k6 profile (ephemeral — each impl is booted,
+# load-tested, and torn down) and commits bench/results.json, which the dashboard renders.
+# Manual only: Actions tab -> Benchmark -> Run workflow (or `gh workflow run benchmark.yml`).
+#
+# Numbers come from a shared 2-vCPU runner, so they are a RELATIVE comparison, not absolute
+# capacity — the dashboard labels them as such.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: benchmark
+  cancel-in-progress: false
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install k6
+        run: |
+          curl -fsSL https://github.com/grafana/k6/releases/download/v0.52.0/k6-v0.52.0-linux-amd64.tar.gz | tar xz
+          sudo mv k6-v0.52.0-linux-amd64/k6 /usr/local/bin/k6
+          k6 version
+      - name: Run benchmarks
+        env:
+          BENCH_WARMUP: 8s
+          BENCH_STEADY: 25s
+          BENCH_VUS: "20"
+        run: bash bench/run-ci.sh
+      - name: Commit results (triggers a Pages redeploy with the numbers)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add bench/results.json
+          if git diff --cached --quiet; then
+            echo "no benchmark changes"
+          else
+            git commit -m "bench: refresh perf results"
+            git push
+          fi

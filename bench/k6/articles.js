@@ -12,22 +12,29 @@ const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 const CREDENTIALS = JSON.stringify({ username: 'admin', password: 'admin' });
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
+// Duration/VUs are env-overridable so CI can run a shorter measurement window than a
+// full local run: BENCH_WARMUP (default 15s), BENCH_STEADY (default 60s), BENCH_VUS (default 20).
+const WARMUP = __ENV.BENCH_WARMUP || '15s';
+const STEADY = __ENV.BENCH_STEADY || '60s';
+const VUS = Number(__ENV.BENCH_VUS || 20);
+
 export const options = {
   scenarios: {
     articles: {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '15s', target: 20 }, // warm-up ramp (discarded in analysis)
-        { duration: '60s', target: 20 }, // steady state — this is the measurement window
-        { duration: '5s', target: 0 },   // ramp down
+        { duration: WARMUP, target: VUS }, // warm-up ramp (discarded in analysis)
+        { duration: STEADY, target: VUS }, // steady state — the measurement window
+        { duration: '5s', target: 0 },     // ramp down
       ],
       gracefulRampDown: '5s',
     },
   },
+  // Report p99 in the summary; thresholds are advisory (a slow impl shouldn't fail the bench job).
+  summaryTrendStats: ['avg', 'med', 'p(95)', 'p(99)', 'max'],
   thresholds: {
-    http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<250', 'p(99)<500'],
+    http_req_failed: ['rate<0.05'],
   },
 };
 
