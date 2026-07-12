@@ -139,10 +139,17 @@ the price of that structure visible. Cross-runtime, the Python trio (11–16 fil
 (14) are markedly leaner than any structured .NET style; NestJS (21) recreates the ceremony trade
 inside Node. Performance (axis B) is the real cross-runtime question and lands in Phase 2.
 
-> **Docker was unavailable in the build environment**, so the live conformance runs (which prove
-> behavioural parity) and the benchmarks have **not executed yet** — every implementation is built
-> *to* the contract and is one command from a green run wherever Docker is up:
-> `./scripts/verify-impl.sh implementations/<name>`. Treat "conforms" as by-construction until then.
+> **Docker was unavailable in the build environment**, so the live conformance runs and benchmarks
+> have **not executed locally** — every implementation is built *to* the contract. The
+> [CI workflow](.github/workflows/ci.yml) runs the conformance suite against all ten on GitHub's
+> runners (no local Docker needed), so the green run happens on push. Treat "conforms" as
+> by-construction until CI is green.
+
+## Deploy
+
+Cloud paths that don't need a local Docker daemon — CI (proves parity on runners), GitHub Pages
+(free public charts), Render (live reference API + Postgres), and self-hosting the full live
+switcher. See [`docs/DEPLOY.md`](docs/DEPLOY.md).
 
 ## License
 

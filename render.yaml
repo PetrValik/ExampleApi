@@ -1,0 +1,45 @@
+# Render Blueprint — the reference API + a managed PostgreSQL + the static dashboard.
+# Connect this repo in Render (New + → Blueprint) to provision these and auto-deploy on push to main.
+#
+# Authored without a Render account to test against — verify in the Render UI. See docs/DEPLOY.md
+# for the one manual step (the API's connection string) and the full cloud story.
+databases:
+  - name: example-api-db
+    databaseName: exampleapi
+    plan: free
+
+services:
+  # Reference API (Vertical Slice). A live endpoint you can curl and point conformance at.
+  - type: web
+    name: example-api-vsa
+    runtime: docker
+    dockerfilePath: implementations/dotnet-vsa/Dockerfile
+    dockerContext: implementations/dotnet-vsa
+    plan: free
+    envVars:
+      - key: PORT
+        value: "8080"
+      - key: ASPNETCORE_URLS
+        value: http://+:8080
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Jwt__Issuer
+        value: ExampleApi
+      - key: Jwt__Audience
+        value: ExampleApiClient
+      - key: Jwt__ExpirationMinutes
+        value: "60"
+      - key: Jwt__SecretKey
+        generateValue: true      # Render generates a strong (>=32 char) secret
+      - key: ConnectionStrings__Default
+        sync: false              # set once in the UI from the DB's Internal Connection String
+                                 # in Npgsql keyword form — see docs/DEPLOY.md
+
+  # Static comparison dashboard (charts + tables). The live API explorer needs a reachable backend
+  # with CORS; for that use the self-hosted docker-compose.all.yml. Here it serves the charts.
+  - type: web
+    name: example-api-dashboard
+    runtime: static
+    plan: free
+    buildCommand: node scripts/gen-dashboard-data.mjs && mkdir -p public && cp dashboard/index.html dashboard/data.json contract/openapi.yaml public/
+    staticPublishPath: public
