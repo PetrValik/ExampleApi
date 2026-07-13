@@ -238,7 +238,7 @@
 
   <section id="workersSection" style="display:none">
     <h2>Multi-worker — do more processes unlock the cores?</h2>
-    <p class="section-note" id="workersNote">FastAPI was flat past 1 CPU (a single uvicorn worker is one process on one core). Give it more worker processes at a fixed multi-core budget and it climbs — proving the flatness was the process model, not the runtime.</p>
+    <p class="section-note" id="workersNote">FastAPI was flat past 1 CPU (a single uvicorn worker is one process on one core). More worker processes help — but only up to a point: 2 workers lifted it markedly, 4 regressed (this DB-bound async app oversubscribes the database past ~2 workers). So worker count is a knob to tune, not to max out.</p>
     <div class="scaling-grid" id="workersFacet"></div>
   </section>
 

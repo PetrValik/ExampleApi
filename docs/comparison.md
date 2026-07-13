@@ -116,6 +116,68 @@ concurrency model dominates** — multi-threaded .NET pulls 2.5–5× ahead of t
 Choosing a runtime for a multi-core box is really choosing a concurrency model (or committing to run
 N worker processes).
 
+### Workload shapes + latency (2 CPU)
+
+Same budget, different request mix (`bash bench/run-profiles.sh` → [`bench/profiles.json`](../bench/profiles.json)).
+Read/write/paginate are saturated (req/s); latency is a separate realistic-load run (30 VUs with
+think-time) so p50/p95/p99 reflect responsiveness, not saturation.
+
+| Implementation | read r/s | write r/s | paginate r/s | latency p50/p95/p99 |
+|----------------|:--------:|:---------:|:------------:|:-------------------:|
+| dotnet-minimal | 7,142 | 8,192 | 8,050 | 7 / 16 / 23 ms |
+| dotnet-vsa | 8,342 | 7,493 | 8,120 | 7 / 15 / 19 ms |
+| dotnet-clean | 6,338 | 6,064 | 5,837 | 6 / 16 / 20 ms |
+| dotnet-mvc | 6,256 | 5,567 | 5,583 | 8 / 16 / 19 ms |
+| ts-express | 2,846 | 2,993 | 2,996 | 12 / 29 / 34 ms |
+| dotnet-mediatr | 5,631 | 2,863 | 2,827 | 6 / 14 / 17 ms |
+| ts-nestjs | 2,350 | 2,123 | 2,378 | 7 / 19 / 29 ms |
+| python-flask | 2,059 | 1,234 | 1,728 | 5 / 12 / 16 ms |
+| python-fastapi | 1,414 | 1,113 | 1,358 | 6 / **117 / 131** ms |
+| python-django | 609 | 534 | 547 | 6 / 11 / 18 ms |
+
+- **FastAPI's p99 tail is ~131 ms under load** vs ~15–35 ms for everyone else — the single async worker's
+  event-loop tail (requests queue behind one core). Its p50 (6 ms) is fine; the *tail* is the problem.
+- **MediatR halves its own write throughput** (5,631 read → 2,863 write) — the validation/behaviour
+  pipeline runs per command; the other .NET styles don't show that read/write gap.
+- **Django has good latency but the lowest throughput** — at moderate offered load it responds fine
+  (6/11/18 ms); it just can't push volume (DRF serialization + per-request overhead).
+- Writes are broadly as cheap as reads for the fast runtimes; only MediatR and the Python trio pay a
+  visible write penalty.
+
+### Multi-worker — does adding processes unlock the cores?
+
+FastAPI was the flat-liner in the scaling test (one uvicorn worker = one process on one core). Give
+it more worker processes at a fixed 4-CPU budget (`bash bench/run-workers.sh` →
+[`bench/workers.json`](../bench/workers.json)):
+
+| uvicorn workers | 1 | 2 | 4 |
+|-----------------|:-:|:-:|:-:|
+| req/s | 1,275 | **1,835** | 1,305 |
+| p99 | 144 ms | 84 ms | 143 ms |
+
+**Workers help — but only up to a point.** Two workers lifted throughput ~44% and halved p99; four
+workers **regressed** back to the single-worker level. This app is DB-bound (every request hits
+Postgres via async SQLAlchemy), so past ~2 workers the extra processes oversubscribe the database
+and context-switch more than they parallelise. The lesson isn't "add workers to scale" — it's "the
+process/worker count is a knob you tune to the workload," and the multi-threaded-runtime advantage
+(.NET here) is getting that parallelism *without* running and coordinating N separate processes.
+*(Flask and Django already run 2 and 3 gunicorn workers by default — which is why they didn't flatten
+as hard in the scaling test. Node/Express would need the `cluster` module for the same effect.)*
+
+### Startup — cold start (app-isolated, median of 3)
+
+Time from container start to first healthy response, with a fast DB healthcheck so it measures the
+*app's* boot, not the healthcheck interval (`bench/coldstart.py`). Lower is better.
+
+| ts-nestjs | python-flask | ts-express | dotnet (all 5) | python-fastapi | python-django |
+|:---------:|:------------:|:----------:|:--------------:|:--------------:|:-------------:|
+| 2.15 s | 2.27 s | 2.31 s | ~2.33 s | 2.53 s | 2.68 s |
+
+Everything is within ~0.5 s. Notably **.NET cold-starts as fast as the scripting runtimes (~2.3 s)** —
+the "JIT is slow to boot" intuition doesn't hold for modern .NET here. Django is slowest (migrations
+run in its entrypoint). *(With the default 5 s Postgres healthcheck instead, every stack is ~6.3 s —
+startup is gated by your healthcheck config, not the runtime.)*
+
 ---
 
 ## Implementation notes (parity details)

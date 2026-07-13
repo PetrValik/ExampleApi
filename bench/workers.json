@@ -1,0 +1,29 @@
+{
+  "ranAt": "2026-07-13T13:02:07.325Z",
+  "cpu": 4,
+  "workerLevels": [
+    1,
+    2,
+    4
+  ],
+  "runner": "local · 4 CPU · throughput vs worker processes (uvicorn --workers)",
+  "results": {
+    "python-fastapi": {
+      "1": {
+        "rps": 1274.7,
+        "p95": 97,
+        "p99": 144.3
+      },
+      "2": {
+        "rps": 1834.5,
+        "p95": 58.5,
+        "p99": 83.9
+      },
+      "4": {
+        "rps": 1305.1,
+        "p95": 102.3,
+        "p99": 143.4
+      }
+    }
+  }
+}
