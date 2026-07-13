@@ -81,6 +81,41 @@ Sorted by throughput per CPU (all serve the identical contract, same PostgreSQL)
 > (tune `BENCH_CPUS` / `BENCH_VUS`), or `BENCH_SLEEP=0.1` for a latency-under-realistic-load view.
 > The [CI benchmark](../.github/workflows/benchmark.yml) runs the same profile on a 2-vCPU runner.
 
+### Scaling — throughput vs CPU (the concurrency model, made visible)
+
+Each implementation, saturated, at 0.5 / 1 / 2 / 4 CPU (`bash bench/run-sweep.sh` →
+[`bench/sweep.json`](../bench/sweep.json); the dashboard draws it as line charts per runtime). The
+**shape of the curve is the story** — it exposes how many cores a single process can actually use:
+
+| Implementation | 0.5 | 1 | 2 | 4 | 0.5→max |
+|----------------|:---:|:-:|:-:|:-:|:-------:|
+| dotnet-clean | 618 | 1,532 | 6,033 | 6,904 | **11.2×** |
+| dotnet-minimal | 564 | 1,835 | 5,732 | 6,815 | 12.1× |
+| dotnet-mediatr | 624 | 1,590 | 5,871 | 6,759 | 10.8× |
+| dotnet-vsa | 499 | 1,601 | 5,772 | 5,882 | 11.8× |
+| dotnet-mvc | 511 | 1,388 | 5,368 | 6,202 | 12.1× |
+| ts-express | 682 | 1,873 | 2,780 | 2,668 | 3.9× |
+| python-django | 119 | 368 | 627 | 590 | 4.9× |
+| python-flask | 512 | 1,400 | 1,998 | 1,968 | 3.8× |
+| ts-nestjs | 695 | 1,751 | 2,123 | 2,154 | 3.1× |
+| python-fastapi | 627 | 1,326 | 1,316 | 1,372 | 2.2× |
+
+- **.NET scales near-linearly to 4 cores (~11–12×)** and pulls far ahead at scale (~6–7k req/s) —
+  the ASP.NET Core thread pool genuinely uses every core. All five architectures scale *identically*,
+  so once again architecture is perf-neutral; only the runtime's concurrency model matters.
+- **Node plateaus after ~2 cores (~3–4×).** A single V8 event loop can overlap I/O (helped by libuv's
+  thread pool up to ~2 cores) but can't parallelise CPU work in one process — to use 4 cores you'd run
+  a cluster / multiple PM2 instances behind a load balancer.
+- **FastAPI (async, single uvicorn worker) is flat after 1 core (2.2×).** All its gain is 0.5→1;
+  beyond that a single async worker is pinned to one core. `uvicorn --workers N` would unlock the rest.
+- **Flask/Django (sync, gunicorn) climb to ~2 cores then flatten** — bounded by the configured worker
+  count, not the language. Django's absolute ceiling stays low (DRF overhead).
+
+The headline: **at 0.5–1 CPU everyone is within ~3–4× of each other, but give them 4 cores and the
+concurrency model dominates** — multi-threaded .NET pulls 2.5–5× ahead of the single-process runtimes.
+Choosing a runtime for a multi-core box is really choosing a concurrency model (or committing to run
+N worker processes).
+
 ---
 
 ## Implementation notes (parity details)
