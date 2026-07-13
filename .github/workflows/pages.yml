@@ -32,7 +32,9 @@ jobs:
           cp dashboard/index.html _site/index.html
           cp dashboard/data.json  _site/data.json
           cp contract/openapi.yaml _site/openapi.yaml
-          [ -f bench/sweep.json ] && cp bench/sweep.json _site/sweep.json || echo "no sweep.json yet"
+          for j in sweep coldstart profiles workers; do
+            [ -f "bench/$j.json" ] && cp "bench/$j.json" "_site/$j.json" || echo "no $j.json yet"
+          done
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site

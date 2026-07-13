@@ -1,0 +1,86 @@
+{
+  "ranAt": "2026-07-13T11:43:03+00:00",
+  "runner": "local cold start \u2014 median of 3, images pre-built, fast DB healthcheck (isolates app startup)",
+  "results": {
+    "dotnet-vsa": {
+      "coldStartSec": 2.35,
+      "runs": [
+        2.38,
+        2.33,
+        2.35
+      ]
+    },
+    "dotnet-minimal": {
+      "coldStartSec": 2.33,
+      "runs": [
+        2.33,
+        2.34,
+        2.32
+      ]
+    },
+    "dotnet-mvc": {
+      "coldStartSec": 2.33,
+      "runs": [
+        2.32,
+        2.33,
+        2.33
+      ]
+    },
+    "dotnet-clean": {
+      "coldStartSec": 2.33,
+      "runs": [
+        2.3,
+        2.33,
+        2.35
+      ]
+    },
+    "dotnet-mediatr": {
+      "coldStartSec": 2.35,
+      "runs": [
+        2.36,
+        2.35,
+        2.34
+      ]
+    },
+    "python-fastapi": {
+      "coldStartSec": 2.53,
+      "runs": [
+        2.73,
+        2.53,
+        2.48
+      ]
+    },
+    "python-django": {
+      "coldStartSec": 2.68,
+      "runs": [
+        2.68,
+        2.64,
+        2.71
+      ]
+    },
+    "python-flask": {
+      "coldStartSec": 2.27,
+      "runs": [
+        2.26,
+        2.27,
+        2.29
+      ]
+    },
+    "ts-express": {
+      "coldStartSec": 2.31,
+      "runs": [
+        2.3,
+        2.31,
+        2.32
+      ]
+    },
+    "ts-nestjs": {
+      "coldStartSec": 2.15,
+      "runs": [
+        2.12,
+        2.15,
+        2.16
+      ]
+    }
+  }
+}
