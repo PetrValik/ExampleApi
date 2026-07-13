@@ -1,66 +1,76 @@
 {
-  "ranAt": "2026-07-12T22:45:24.793Z",
-  "runner": "github-actions ubuntu-latest (2 vCPU) — indicative, relative comparison only",
+  "ranAt": "2026-07-13T08:22:39.215Z",
+  "runner": "local · 1.0 CPU / 1g per container (resource-fair)",
   "results": {
     "dotnet-clean": {
-      "rps": 158.9,
-      "p95": 5.5,
-      "p99": 8.2,
-      "imageMb": 228
+      "rps": 1849.7,
+      "p95": 78.4,
+      "p99": 95.6,
+      "ramMb": 84,
+      "imageMb": 91
     },
     "dotnet-mediatr": {
-      "rps": 159.3,
-      "p95": 4.9,
-      "p99": 6.7,
-      "imageMb": 228
+      "rps": 1575,
+      "p95": 84.2,
+      "p99": 100.2,
+      "ramMb": 81,
+      "imageMb": 91
     },
     "dotnet-minimal": {
-      "rps": 159.2,
-      "p95": 5.1,
-      "p99": 7.3,
-      "imageMb": 227
+      "rps": 1790.2,
+      "p95": 81.1,
+      "p99": 97.9,
+      "ramMb": 88,
+      "imageMb": 91
     },
     "dotnet-mvc": {
-      "rps": 158.4,
-      "p95": 6.1,
-      "p99": 8.4,
-      "imageMb": 228
+      "rps": 1506.2,
+      "p95": 87.4,
+      "p99": 103,
+      "ramMb": 84,
+      "imageMb": 91
     },
     "dotnet-vsa": {
-      "rps": 159.4,
-      "p95": 5,
-      "p99": 6.9,
-      "imageMb": 231
+      "rps": 1664.9,
+      "p95": 83,
+      "p99": 96.3,
+      "ramMb": 87,
+      "imageMb": 92
     },
     "python-django": {
-      "rps": 133.8,
-      "p95": 31.9,
-      "p99": 40.8,
-      "imageMb": 168
+      "rps": 369.2,
+      "p95": 167.8,
+      "p99": 190,
+      "ramMb": 148,
+      "imageMb": 58
     },
     "python-fastapi": {
-      "rps": 152.3,
-      "p95": 8.5,
-      "p99": 165.4,
-      "imageMb": 187
+      "rps": 1366.5,
+      "p95": 68.6,
+      "p99": 98.9,
+      "ramMb": 61,
+      "imageMb": 63
     },
     "python-flask": {
-      "rps": 156.7,
-      "p95": 6.8,
-      "p99": 8.4,
-      "imageMb": 164
+      "rps": 1506.7,
+      "p95": 57.4,
+      "p99": 62.1,
+      "ramMb": 112,
+      "imageMb": 58
     },
     "ts-express": {
-      "rps": 155.8,
-      "p95": 8.8,
-      "p99": 10.7,
-      "imageMb": 314
+      "rps": 1986.1,
+      "p95": 52.3,
+      "p99": 57.5,
+      "ramMb": 43,
+      "imageMb": 112
     },
     "ts-nestjs": {
-      "rps": 153.7,
-      "p95": 12.1,
-      "p99": 17.3,
-      "imageMb": 200
+      "rps": 1874.1,
+      "p95": 46.4,
+      "p99": 55.5,
+      "ramMb": 64,
+      "imageMb": 70
     }
   }
 }

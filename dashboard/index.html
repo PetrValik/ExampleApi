@@ -222,6 +222,7 @@
   let selected = "dotnet-vsa";
   let metricA = "files";
   let proxyAvailable = false;
+  let benchMeta = null;
 
   document.getElementById("themeBtn").addEventListener("click", () => {
     const cur = root.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
@@ -253,8 +254,10 @@
   function renderDetail() {
     const d = DATA.find(x => x.name === selected); const c = famColor(d.family);
     const perfBits = (d.perf && d.perf.rps != null) ? `
-        <div class="stat"><div class="v">${Math.round(d.perf.rps).toLocaleString()}</div><div class="k">req/s (CI)</div></div>
-        <div class="stat"><div class="v" style="font-size:18px">${d.perf.p99 != null ? Math.round(d.perf.p99) + " ms" : "—"}</div><div class="k">p99 latency</div></div>` : "";
+        <div class="stat"><div class="v">${Math.round(d.perf.rps).toLocaleString()}</div><div class="k">req/s / CPU</div></div>
+        <div class="stat"><div class="v" style="font-size:18px">${d.perf.p99 != null ? Math.round(d.perf.p99) + " ms" : "—"}</div><div class="k">p99 latency</div></div>
+        <div class="stat"><div class="v" style="font-size:18px">${d.perf.ramMb != null ? d.perf.ramMb + " MB" : "—"}</div><div class="k">memory (load)</div></div>
+        <div class="stat"><div class="v" style="font-size:18px">${d.perf.imageMb != null ? d.perf.imageMb + " MB" : "—"}</div><div class="k">image size</div></div>` : "";
     detail.innerHTML = `
       <div class="detail-head">
         <div><div class="detail-name">${d.name}</div><p class="detail-stack">${d.stack}</p></div>
@@ -343,7 +346,7 @@
     panel.innerHTML = `
       <div class="chart-head"><h2 style="margin:0">Throughput <span style="color:var(--muted);text-transform:none;letter-spacing:0">· req/s, higher is better</span></h2></div>
       <div class="bars" id="perfBars"></div>
-      <p class="section-note" style="margin:12px 0 0">Indicative — measured on a shared 2-core CI runner, so read it as a relative comparison, not absolute capacity. p95/p99 in the table.</p>`;
+      <p class="section-note" style="margin:12px 0 0">${benchMeta && benchMeta.runner ? "Measured: " + benchMeta.runner + "." : "Indicative — relative comparison, not absolute capacity."} p95/p99 in the table.</p>`;
     renderBars("perfBars", rows, (r)=>r.perf.rps, (r)=>famColor(r.family), (v)=>Math.round(v).toLocaleString());
   }
   function renderTable() {
@@ -377,7 +380,7 @@
 
   // Prefer the generated data.json (kept in sync by scripts/gen-dashboard-data.mjs); fall back to embedded.
   async function boot() {
-    try { const r = await fetch("data.json"); if (r.ok) { const j = await r.json(); if (j && j.implementations) DATA = j.implementations; } } catch { /* use fallback */ }
+    try { const r = await fetch("data.json"); if (r.ok) { const j = await r.json(); if (j && j.implementations) DATA = j.implementations; if (j && j.benchmark) benchMeta = j.benchmark; } } catch { /* use fallback */ }
     await probeBackend();
     renderAll();
   }

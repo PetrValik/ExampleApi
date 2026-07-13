@@ -1,7 +1,10 @@
 {
   "generatedNote": "Code metrics computed live by scripts/gen-dashboard-data.mjs.",
   "contractVersion": "1.0.0",
-  "benchmark": null,
+  "benchmark": {
+    "ranAt": "2026-07-13T08:22:39.215Z",
+    "runner": "local · 1.0 CPU / 1g per container (resource-fair)"
+  },
   "implementations": [
     {
       "name": "dotnet-vsa",
@@ -17,12 +20,12 @@
         "nonblank": 1596
       },
       "perf": {
-        "rps": null,
+        "rps": 1664.9,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 83,
+        "p99": 96.3,
+        "ramMb": 87,
+        "imageMb": 92
       },
       "conformance": "pass",
       "build": "pass"
@@ -40,12 +43,12 @@
         "nonblank": 327
       },
       "perf": {
-        "rps": null,
+        "rps": 1790.2,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 81.1,
+        "p99": 97.9,
+        "ramMb": 88,
+        "imageMb": 91
       },
       "conformance": "pass",
       "build": "pass"
@@ -63,12 +66,12 @@
         "nonblank": 917
       },
       "perf": {
-        "rps": null,
+        "rps": 1506.2,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 87.4,
+        "p99": 103,
+        "ramMb": 84,
+        "imageMb": 91
       },
       "conformance": "pass",
       "build": "pass"
@@ -86,12 +89,12 @@
         "nonblank": 1185
       },
       "perf": {
-        "rps": null,
+        "rps": 1849.7,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 78.4,
+        "p99": 95.6,
+        "ramMb": 84,
+        "imageMb": 91
       },
       "conformance": "pass",
       "build": "pass"
@@ -109,12 +112,12 @@
         "nonblank": 1312
       },
       "perf": {
-        "rps": null,
+        "rps": 1575,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 84.2,
+        "p99": 100.2,
+        "ramMb": 81,
+        "imageMb": 91
       },
       "conformance": "pass",
       "build": "pass"
@@ -132,12 +135,12 @@
         "nonblank": 585
       },
       "perf": {
-        "rps": null,
+        "rps": 1366.5,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 68.6,
+        "p99": 98.9,
+        "ramMb": 61,
+        "imageMb": 63
       },
       "conformance": "pass",
       "build": "pass"
@@ -155,12 +158,12 @@
         "nonblank": 566
       },
       "perf": {
-        "rps": null,
+        "rps": 369.2,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 167.8,
+        "p99": 190,
+        "ramMb": 148,
+        "imageMb": 58
       },
       "conformance": "pass",
       "build": "pass"
@@ -178,12 +181,12 @@
         "nonblank": 473
       },
       "perf": {
-        "rps": null,
+        "rps": 1506.7,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 57.4,
+        "p99": 62.1,
+        "ramMb": 112,
+        "imageMb": 58
       },
       "conformance": "pass",
       "build": "pass"
@@ -201,12 +204,12 @@
         "nonblank": 646
       },
       "perf": {
-        "rps": null,
+        "rps": 1986.1,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 52.3,
+        "p99": 57.5,
+        "ramMb": 43,
+        "imageMb": 112
       },
       "conformance": "pass",
       "build": "pass"
@@ -224,12 +227,12 @@
         "nonblank": 754
       },
       "perf": {
-        "rps": null,
+        "rps": 1874.1,
         "p50": null,
-        "p95": null,
-        "p99": null,
-        "ramMb": null,
-        "imageMb": null
+        "p95": 46.4,
+        "p99": 55.5,
+        "ramMb": 64,
+        "imageMb": 70
       },
       "conformance": "pass",
       "build": "pass"

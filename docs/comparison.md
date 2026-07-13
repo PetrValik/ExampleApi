@@ -40,29 +40,46 @@ automatically better** — the table makes the trade visible.
 
 ## Axis B — different runtime / framework
 
-Here the runtime is the variable, so **throughput and resource use are the point** — pending the
-benchmark harness (Phase 2, needs Docker). Code size is shown only for context; LOC across languages
-is not directly comparable.
+Here the runtime is the variable, so **throughput and resource use are the point**. Each
+implementation was benchmarked **one at a time under the same budget — 1 CPU / 1 GB per container —
+saturated** (50 VUs, no think-time), so `req/s` reflects **max throughput per CPU** (efficiency),
+not who grabbed more cores. Latency is high because the CPU is deliberately saturated; compare it
+*across* rows, not to an SLA. Produced by [`bench/run-local.sh`](../bench/run-local.sh) →
+[`bench/results.json`](../bench/results.json); the dashboard reads the same numbers.
 
-| Implementation | Runtime / stack | Src files | Src LOC | RPS · p50/p95/p99 · RAM · image |
-|----------------|-----------------|:---------:|:-------:|:-------------------------------:|
-| python-flask | Flask + SQLAlchemy (sync WSGI) | 11 | 611 | _pending Phase 2_ |
-| python-fastapi | FastAPI + SQLAlchemy 2 (async) | 14 | 755 | _pending Phase 2_ |
-| python-django | Django + DRF | 16 | 721 | _pending Phase 2_ |
-| ts-express | Express + Prisma (Node 24) | 14 | 747 | _pending Phase 2_ |
-| ts-nestjs | NestJS + TypeORM (Node 24) | 21 | 850 | _pending Phase 2_ |
-| dotnet-vsa | .NET 10 | 48 | 1823 | _pending Phase 2_ |
+Sorted by throughput per CPU (all serve the identical contract, same PostgreSQL):
 
-Even before perf numbers, an axis-A-style observation leaks in: within Node, **Express (14 files) vs
-NestJS (21 files)** is the same ceremony trade as minimal-vs-VSA in .NET — NestJS's modules/decorators
-cost files, Express stays lean. And the Python trio (11–16 files) is markedly leaner than any
-structured .NET style for the same behaviour.
+| Implementation | Runtime / stack | req/s @1CPU | p95 | p99 | RAM (load) | Image |
+|----------------|-----------------|:-----------:|:---:|:---:|:----------:|:-----:|
+| **ts-express** | Express + Prisma (Node) | **1986** | 52 ms | 58 ms | **43 MB** | 112 MB |
+| ts-nestjs | NestJS + TypeORM (Node) | 1874 | 46 ms | 56 ms | 64 MB | 70 MB |
+| dotnet-clean | Clean Architecture (.NET) | 1850 | 78 ms | 96 ms | 84 MB | 91 MB |
+| dotnet-minimal | Minimal API (.NET) | 1790 | 81 ms | 98 ms | 88 MB | 91 MB |
+| dotnet-vsa | Vertical Slice (.NET) | 1665 | 83 ms | 96 ms | 87 MB | 92 MB |
+| dotnet-mediatr | VSA + MediatR (.NET) | 1575 | 84 ms | 100 ms | 81 MB | 91 MB |
+| python-flask | Flask + SQLAlchemy (sync) | 1507 | 57 ms | 62 ms | 112 MB | **58 MB** |
+| dotnet-mvc | Controllers (.NET) | 1506 | 87 ms | 103 ms | 84 MB | 91 MB |
+| python-fastapi | FastAPI + SQLAlchemy (async) | 1367 | 69 ms | 99 ms | 61 MB | 63 MB |
+| python-django | Django + DRF | 369 | 168 ms | 190 ms | 148 MB | 58 MB |
 
-> Numbers are from [`scripts/gen-dashboard-data.mjs`](../scripts/gen-dashboard-data.mjs) (canonical;
-> excludes build output incl. TS `dist/`) — the same source the dashboard reads.
+**What it says:**
 
-Methodology (warm-up, repeated runs, controlled variables) is in [`bench/README.md`](../bench/README.md).
-When perf numbers exist, a shareable chart can be generated from this table.
+- **Node (Express/Nest) tops throughput *and* memory** — ~1900–2000 req/s at 43–64 MB. Express's
+  Prisma engine makes its image the largest (112 MB) despite the leanest runtime memory.
+- **.NET clusters tightly (1506–1850 req/s, ~85 MB) across all five architectures** — the clearest
+  proof of the whole thesis: on the same runtime, **architecture barely moves performance** (~20%
+  spread, mostly noise + MediatR/controller indirection). So choose a .NET architecture on *code
+  ceremony* (axis A), not speed.
+- **Django/DRF is the outlier at 369 req/s** — DRF's serializer/validation stack plus sync workers
+  cost ~4–5× the throughput of every other runtime here, at the highest memory (148 MB). Flask and
+  FastAPI (same language) are 4× faster, so this is a *framework* cost, not a *Python* cost.
+- **Smallest images are Python/Django-family (58 MB)**; .NET is a consistent ~91 MB; Prisma inflates
+  ts-express to 112 MB.
+
+> **Caveats:** a single run on one developer machine (Apple Silicon), saturated at 1 CPU — a
+> *relative* comparison, not a datacenter benchmark. Re-run with `bash bench/run-local.sh`
+> (tune `BENCH_CPUS` / `BENCH_VUS`), or `BENCH_SLEEP=0.1` for a latency-under-realistic-load view.
+> The [CI benchmark](../.github/workflows/benchmark.yml) runs the same profile on a 2-vCPU runner.
 
 ---
 
