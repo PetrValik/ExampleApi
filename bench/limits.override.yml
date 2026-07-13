@@ -1,0 +1,12 @@
+# Resource caps applied to each implementation's `api` container during a resource-fair benchmark.
+# Docker Compose v2 honours deploy.resources.limits for a plain `docker compose up` (no swarm),
+# so every implementation is measured under the SAME CPU/memory budget — throughput then reflects
+# efficiency per unit of resource, not who got more cores. The database is left unconstrained so it
+# is never the bottleneck; we are measuring the application.
+services:
+  api:
+    deploy:
+      resources:
+        limits:
+          cpus: "${BENCH_CPUS:-1.0}"
+          memory: "${BENCH_MEM:-1g}"
