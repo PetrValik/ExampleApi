@@ -17,6 +17,10 @@ const JSON_HEADERS = { 'Content-Type': 'application/json' };
 const WARMUP = __ENV.BENCH_WARMUP || '15s';
 const STEADY = __ENV.BENCH_STEADY || '60s';
 const VUS = Number(__ENV.BENCH_VUS || 20);
+// Per-iteration think-time. Keep a small default for a "realistic load" run; set BENCH_SLEEP=0 to
+// SATURATE the server (max-throughput mode) — useful when the container's CPU is capped and you
+// want requests/sec-per-CPU rather than latency under a modest offered load.
+const SLEEP = Number(__ENV.BENCH_SLEEP != null && __ENV.BENCH_SLEEP !== '' ? __ENV.BENCH_SLEEP : 0.1);
 
 export const options = {
   scenarios: {
@@ -71,5 +75,5 @@ export default function (data) {
     check(res, { 'create 201': (r) => r.status === 201 });
   }
 
-  sleep(0.1);
+  if (SLEEP > 0) sleep(SLEEP);
 }

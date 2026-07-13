@@ -16,7 +16,8 @@ export BENCH_CPUS="${BENCH_CPUS:-1.0}"
 export BENCH_MEM="${BENCH_MEM:-1g}"
 export BENCH_WARMUP="${BENCH_WARMUP:-8s}"
 export BENCH_STEADY="${BENCH_STEADY:-30s}"
-export BENCH_VUS="${BENCH_VUS:-20}"
+export BENCH_VUS="${BENCH_VUS:-50}"     # enough to saturate a 1-CPU container
+export BENCH_SLEEP="${BENCH_SLEEP:-0}"  # no think-time → measure max throughput per CPU
 OVERRIDE="$ROOT/bench/limits.override.yml"
 TMP="$(mktemp -d)"
 
@@ -43,7 +44,8 @@ for impl in "${IMPLS[@]}"; do
 
   k6 run --summary-export="$TMP/$impl.json" \
     -e BASE_URL=http://localhost:8080 \
-    -e BENCH_WARMUP="$BENCH_WARMUP" -e BENCH_STEADY="$BENCH_STEADY" -e BENCH_VUS="$BENCH_VUS" \
+    -e BENCH_WARMUP="$BENCH_WARMUP" -e BENCH_STEADY="$BENCH_STEADY" \
+    -e BENCH_VUS="$BENCH_VUS" -e BENCH_SLEEP="$BENCH_SLEEP" \
     "$ROOT/bench/k6/articles.js" || echo "$impl: k6 non-zero (threshold), keeping summary"
 
   # Container still up → capture settled-under-load memory + image size before teardown.
