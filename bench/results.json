@@ -1,76 +1,86 @@
 {
-  "ranAt": "2026-07-13T08:22:39.215Z",
-  "runner": "local · 1.0 CPU / 1g per container (resource-fair)",
+  "ranAt": "2026-07-13T13:28:32.859Z",
+  "runner": "local · 1.0 CPU / 1g · median of 3, saturated",
   "results": {
     "dotnet-clean": {
-      "rps": 1849.7,
-      "p95": 78.4,
-      "p99": 95.6,
-      "ramMb": 84,
-      "imageMb": 91
+      "rps": 1410,
+      "p95": 92.1,
+      "p99": 108.8,
+      "ramMb": 78,
+      "imageMb": 91,
+      "runs": 3
     },
     "dotnet-mediatr": {
-      "rps": 1575,
-      "p95": 84.2,
-      "p99": 100.2,
-      "ramMb": 81,
-      "imageMb": 91
+      "rps": 1361.5,
+      "p95": 92.9,
+      "p99": 113.7,
+      "ramMb": 78,
+      "imageMb": 91,
+      "runs": 3
     },
     "dotnet-minimal": {
-      "rps": 1790.2,
-      "p95": 81.1,
-      "p99": 97.9,
-      "ramMb": 88,
-      "imageMb": 91
+      "rps": 1405.8,
+      "p95": 90.9,
+      "p99": 109.3,
+      "ramMb": 75,
+      "imageMb": 91,
+      "runs": 3
     },
     "dotnet-mvc": {
-      "rps": 1506.2,
-      "p95": 87.4,
-      "p99": 103,
-      "ramMb": 84,
-      "imageMb": 91
+      "rps": 1310.6,
+      "p95": 95,
+      "p99": 112.9,
+      "ramMb": 80,
+      "imageMb": 91,
+      "runs": 3
     },
     "dotnet-vsa": {
-      "rps": 1664.9,
-      "p95": 83,
-      "p99": 96.3,
-      "ramMb": 87,
-      "imageMb": 92
+      "rps": 1613.5,
+      "p95": 86.7,
+      "p99": 101.3,
+      "ramMb": 79,
+      "imageMb": 92,
+      "runs": 3
     },
     "python-django": {
-      "rps": 369.2,
-      "p95": 167.8,
-      "p99": 190,
-      "ramMb": 148,
-      "imageMb": 58
+      "rps": 329.4,
+      "p95": 179.6,
+      "p99": 190.4,
+      "ramMb": 145,
+      "imageMb": 58,
+      "runs": 3
     },
     "python-fastapi": {
-      "rps": 1366.5,
-      "p95": 68.6,
-      "p99": 98.9,
-      "ramMb": 61,
-      "imageMb": 63
+      "rps": 1117.7,
+      "p95": 79.5,
+      "p99": 117.3,
+      "ramMb": 62,
+      "imageMb": 63,
+      "runs": 3
     },
     "python-flask": {
-      "rps": 1506.7,
-      "p95": 57.4,
-      "p99": 62.1,
-      "ramMb": 112,
-      "imageMb": 58
+      "rps": 1176.4,
+      "p95": 66.6,
+      "p99": 71.7,
+      "ramMb": 111,
+      "imageMb": 58,
+      "runs": 3
     },
     "ts-express": {
-      "rps": 1986.1,
-      "p95": 52.3,
-      "p99": 57.5,
-      "ramMb": 43,
-      "imageMb": 112
+      "rps": 1744.2,
+      "p95": 56.5,
+      "p99": 62.7,
+      "ramMb": 45,
+      "imageMb": 112,
+      "runs": 3
     },
     "ts-nestjs": {
-      "rps": 1874.1,
-      "p95": 46.4,
-      "p99": 55.5,
-      "ramMb": 64,
-      "imageMb": 70
+      "rps": 1692.1,
+      "p95": 51.2,
+      "p99": 62.9,
+      "ramMb": 63,
+      "imageMb": 70,
+      "runs": 3
     }
   }
 }
