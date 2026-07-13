@@ -3,11 +3,10 @@
 Ten implementations of the identical API. The two axes are reported separately (see the
 [root README](../README.md) for why mixing them misleads).
 
-> **Verification status:** all implementations **build/typecheck** clean and are Docker-ready.
-> The **live conformance run** (which proves behavioural parity, and therefore that these numbers
-> compare like-for-like) is pending a Docker daemon — run
-> `scripts/verify-impl.sh implementations/<name>` once Docker is up. Until then, read the code-size
-> numbers as real and the "conforms" column as *by construction, not yet executed*.
+> **Verification status:** all 10 implementations **pass the black-box conformance suite live in
+> [CI](../.github/workflows/ci.yml)** (each booted via its own compose, tested on every push) — so the
+> numbers below compare like-for-like behaviour. Performance figures are a median of local runs on one
+> Apple-Silicon laptop (relative, not a datacenter benchmark).
 
 ---
 
@@ -19,11 +18,11 @@ only (tests and generated EF migrations excluded); from [`scripts/metrics.sh`](.
 
 | Implementation | Architecture | Src files | Src LOC | Non-blank | Conforms |
 |----------------|--------------|:---------:|:-------:|:---------:|:--------:|
-| **dotnet-minimal** | one `Program.cs`, raw Minimal API, no abstractions | **1** | **382** | **327** | by-construction |
-| **dotnet-mvc** | Controllers → Services → Repositories (classic layered) | 29 | 1097 | 917 | by-construction |
-| **dotnet-clean** | Clean Architecture, 4 projects, dependency rule inward | 40 | 1401 | 1185 | by-construction |
-| **dotnet-mediatr** | Vertical Slice + MediatR + `Result<T>` + pipeline validation | 46 | 1550 | 1312 | by-construction |
-| **dotnet-vsa** *(reference)* | Vertical Slice, hand-rolled handlers + exceptions | 48 | 1823 | 1596 | ✅ suite ready |
+| **dotnet-minimal** | one `Program.cs`, raw Minimal API, no abstractions | **1** | **382** | **327** | ✅ CI |
+| **dotnet-mvc** | Controllers → Services → Repositories (classic layered) | 29 | 1097 | 917 | ✅ CI |
+| **dotnet-clean** | Clean Architecture, 4 projects, dependency rule inward | 40 | 1401 | 1185 | ✅ CI |
+| **dotnet-mediatr** | Vertical Slice + MediatR + `Result<T>` + pipeline validation | 46 | 1550 | 1312 | ✅ CI |
+| **dotnet-vsa** *(reference)* | Vertical Slice, hand-rolled handlers + exceptions | 48 | 1823 | 1596 | ✅ CI |
 
 **Reading it:** the spread is ~48× in file count and ~4.8× in LOC for the *same* behaviour.
 `dotnet-minimal` is the low-water mark — everything inline, nothing abstracted. The structured

@@ -15,32 +15,31 @@ Implementations are independent — they can be built in any order once Phase 0 
 
 Design: [`docs/superpowers/specs/2026-07-12-example-api-multiapproach-showcase-design.md`](superpowers/specs/2026-07-12-example-api-multiapproach-showcase-design.md).
 
-## Phase 1 — all nine sibling implementations ✅ (built, pending live conformance)
+## Phase 1 — all nine sibling implementations ✅ (done, conformant in CI)
 
 Built in one parallel batch to [`CONTRACT-FOR-IMPLEMENTERS.md`](../implementations/CONTRACT-FOR-IMPLEMENTERS.md);
-all build/typecheck clean and are Docker-ready. First code-ceremony numbers in
-[`comparison.md`](comparison.md).
+all build/typecheck clean and **pass the conformance suite live in CI (10/10)**. The live run
+surfaced and fixed four real parity bugs (2× case-sensitive `Like`→`ILike`, a FastAPI 204-with-body
+keep-alive desync, ts-express Prisma-on-Alpine). Code-ceremony numbers in [`comparison.md`](comparison.md).
 
 - Axis A (.NET): `dotnet-minimal`, `dotnet-mvc`, `dotnet-clean`, `dotnet-mediatr`.
 - Axis B: `python-fastapi`, `python-django`, `python-flask`, `ts-express`, `ts-nestjs`.
 
-**Remaining for Phase 1 to be truly "done": run the live conformance suite against each** (needs
-Docker) and fix any parity gaps it surfaces — `./scripts/verify-impl.sh implementations/<name>`.
-The build already surfaced one reference bug (case-sensitive name filter → fixed with `ILike`);
-expect the live run to surface a few more per impl. Sibling test suites are also follow-on.
+## Phase 2 — real benchmarks ✅ (done)
 
-## Phase 2 — real benchmarks (the main remaining value)
+The [`bench/`](../bench) k6 harness has run against every implementation and the results are live on
+the [dashboard](https://petrvalik.github.io/ExampleApi/) + [`comparison.md`](comparison.md):
+resource-fair throughput @1 CPU (median of 3), CPU-scaling curves (0.5–4), cold-start, workload
+shapes (read/write/paginate), latency-under-load, and a FastAPI multi-worker sweep. Axes kept
+separate: axis-A = code/ceremony, axis-B = perf.
 
-- Wire the [`bench/`](../bench) k6 harness on a host with Docker; run the identical load profile
-  against each implementation; fill the axis-B perf table (RPS, p50/p95/p99, RAM, image size).
-- Keep the axes separate: axis-A stays a code/ceremony comparison, axis-B the perf one.
+## Phase 3+ — depth (optional)
 
-## Phase 3+ — depth
-
+- **Cleaner perf numbers**: re-run the harness on a dedicated host (the current numbers are a median
+  on one laptop). `bench/run-median.sh`, `run-sweep.sh`, `run-profiles.sh`, `run-workers.sh`.
 - Per-sibling **test suites** (each currently relies on the shared conformance suite only).
-- Optional extra variants **in already-present toolchains** (e.g. a Go/Rust impl would need those
-  toolchains installed first). Explicitly **out of scope**: plain JavaScript and Java (no working
-  knowledge on hand). Revisit only if that changes.
+- Optional extra variants **in already-present toolchains** (a Go/Rust impl would need those
+  toolchains installed first). Explicitly **out of scope**: plain JavaScript and Java. Revisit if that changes.
 
 ## Contract versioning
 

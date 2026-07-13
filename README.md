@@ -47,25 +47,24 @@ example-api/
 ## Implementations
 
 All ten build/typecheck clean and ship a Dockerfile + compose (own PostgreSQL, port 8080).
-"Conforms" = passes the [conformance suite](conformance); it is *by construction* until the live
-run executes (pending Docker — see *Status*).
+"Conforms" = passes the [conformance suite](conformance); **all 10 pass it live in
+[CI](.github/workflows/ci.yml)** (booted via their own compose, black-box tested on every push).
 
 | Approach | Runtime | Axis | Build | Conforms |
 |----------|---------|:----:|:-----:|:--------:|
-| [**dotnet-vsa**](implementations/dotnet-vsa) — Vertical Slice *(reference)* | .NET 10 | A | ✅ | suite ready¹ |
-| [dotnet-minimal](implementations/dotnet-minimal) — one file, no abstractions | .NET 10 | A | ✅ | by-construction |
-| [dotnet-mvc](implementations/dotnet-mvc) — Controllers/Services/Repos | .NET 10 | A | ✅ | by-construction |
-| [dotnet-clean](implementations/dotnet-clean) — Clean Architecture (4 projects) | .NET 10 | A | ✅ | by-construction |
-| [dotnet-mediatr](implementations/dotnet-mediatr) — VSA + MediatR + Result | .NET 10 | A | ✅ | by-construction |
-| [python-fastapi](implementations/python-fastapi) — FastAPI + SQLAlchemy | Python | B | ✅ | by-construction |
-| [python-django](implementations/python-django) — Django + DRF | Python | B | ✅ | by-construction |
-| [python-flask](implementations/python-flask) — Flask + SQLAlchemy | Python | B | ✅ | by-construction |
-| [ts-express](implementations/ts-express) — Express + Prisma | Node/TS | B | ✅ | by-construction |
-| [ts-nestjs](implementations/ts-nestjs) — NestJS + TypeORM | Node/TS | B | ✅ | by-construction |
+| [**dotnet-vsa**](implementations/dotnet-vsa) — Vertical Slice *(reference)* | .NET 10 | A | ✅ | ✅ CI |
+| [dotnet-minimal](implementations/dotnet-minimal) — one file, no abstractions | .NET 10 | A | ✅ | ✅ CI |
+| [dotnet-mvc](implementations/dotnet-mvc) — Controllers/Services/Repos | .NET 10 | A | ✅ | ✅ CI |
+| [dotnet-clean](implementations/dotnet-clean) — Clean Architecture (4 projects) | .NET 10 | A | ✅ | ✅ CI |
+| [dotnet-mediatr](implementations/dotnet-mediatr) — VSA + MediatR + Result | .NET 10 | A | ✅ | ✅ CI |
+| [python-fastapi](implementations/python-fastapi) — FastAPI + SQLAlchemy | Python | B | ✅ | ✅ CI |
+| [python-django](implementations/python-django) — Django + DRF | Python | B | ✅ | ✅ CI |
+| [python-flask](implementations/python-flask) — Flask + SQLAlchemy | Python | B | ✅ | ✅ CI |
+| [ts-express](implementations/ts-express) — Express + Prisma | Node/TS | B | ✅ | ✅ CI |
+| [ts-nestjs](implementations/ts-nestjs) — NestJS + TypeORM | Node/TS | B | ✅ | ✅ CI |
 
-¹ The conformance suite is complete and statically verified; every impl is built to it. The live
-green run is pending a Docker daemon (see *Status*). Contract details every impl follows:
-[`implementations/CONTRACT-FOR-IMPLEMENTERS.md`](implementations/CONTRACT-FOR-IMPLEMENTERS.md).
+Contract every impl follows: [`implementations/CONTRACT-FOR-IMPLEMENTERS.md`](implementations/CONTRACT-FOR-IMPLEMENTERS.md).
+Live results: [dashboard](https://petrvalik.github.io/ExampleApi/) · [`docs/comparison.md`](docs/comparison.md).
 
 ## How it fits together
 
@@ -124,26 +123,27 @@ stays same-origin. See [`dashboard/README.md`](dashboard/README.md).
 
 ## Status
 
-**Phase 0 complete + all 10 implementations built.** The reference (`dotnet-vsa`) is polished, the
-contract + conformance suite are extracted, and **nine sibling implementations** now exist — each
-building/typechecking clean and Docker-ready. See [`docs/comparison.md`](docs/comparison.md) for the
-full numbers, [`docs/roadmap.md`](docs/roadmap.md) for what's next, and
-[`docs/superpowers/specs/`](docs/superpowers/specs) for the design.
+**All 10 implementations built, conformant, and benchmarked — live on the
+[dashboard](https://petrvalik.github.io/ExampleApi/).** Conformance passes 10/10 in CI; the k6
+harness has produced resource-fair throughput, CPU-scaling curves, cold-start, workload-shape,
+latency, and multi-worker numbers. See [`docs/comparison.md`](docs/comparison.md) for the full
+tables and [`docs/roadmap.md`](docs/roadmap.md) / [`docs/superpowers/specs/`](docs/superpowers/specs) for design.
 
-**First finding (axis A — code ceremony).** The same behaviour, across the .NET styles, spans
-**1 file / 382 lines** (`dotnet-minimal`, everything inline) to **48 files / 1,823 lines**
-(`dotnet-vsa`) — a ~48× file-count and ~4.8× line spread with near-identical runtime performance.
-Layered and MediatR styles land in between (29–46 files). The takeaway isn't "minimal wins":
-structure buys boundaries, testability and delete-a-folder-to-delete-a-feature — this just makes
-the price of that structure visible. Cross-runtime, the Python trio (11–16 files) and Express
-(14) are markedly leaner than any structured .NET style; NestJS (21) recreates the ceremony trade
-inside Node. Performance (axis B) is the real cross-runtime question and lands in Phase 2.
+**Finding 1 — architecture (axis A) barely moves performance.** The same behaviour across the five
+.NET styles spans **1 file / 382 lines** (`dotnet-minimal`) to **48 files / 1,823 lines**
+(`dotnet-vsa`) — ~48× files, ~4.8× lines — yet all five cluster within ~20% on throughput
+(1,311–1,614 req/s @1 CPU). So a .NET architecture is a choice about *code ceremony, boundaries and
+testability*, not speed.
 
-> **Docker was unavailable in the build environment**, so the live conformance runs and benchmarks
-> have **not executed locally** — every implementation is built *to* the contract. The
-> [CI workflow](.github/workflows/ci.yml) runs the conformance suite against all ten on GitHub's
-> runners (no local Docker needed), so the green run happens on push. Treat "conforms" as
-> by-construction until CI is green.
+**Finding 2 — across runtimes, the concurrency model dominates.** At 1 CPU everyone's within ~5×;
+give them 4 cores and multi-threaded **.NET scales ~12× (to ~6–7k req/s)** while single-process
+**Node plateaus after ~2 cores** and a **single-worker FastAPI stays flat** (adding uvicorn workers
+helps to ~2, then oversubscribes the DB). Django/DRF is the throughput outlier (~4× slower), a
+*framework* cost — Flask/FastAPI on the same Python are far faster.
+
+> **Numbers are indicative** — a median of local runs on one Apple-Silicon laptop, capped per
+> container; a *relative* comparison, not a datacenter benchmark. The methodology and re-run
+> commands are in [`bench/`](bench) and [`docs/comparison.md`](docs/comparison.md).
 
 ## Deploy
 
